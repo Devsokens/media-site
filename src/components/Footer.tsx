@@ -10,13 +10,15 @@ export const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="block mb-4">
-              <h2 className="font-serif text-2xl font-bold text-primary-foreground">
-                The Daily Chronicle
-              </h2>
+              <img
+                src="/assets/JEUOB_LOGO-removebg-preview.png"
+                alt="JEUOB Logo"
+                className="h-10 w-auto object-contain brightness-0 invert"
+              />
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed mb-4">
-              Delivering trusted journalism and insightful analysis since 1892. 
-              Your window to the world.
+              Votre source d'information de confiance et d'analyses approfondies.
+              Votre fenêtre sur le monde.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-primary-foreground/60 hover:text-primary-foreground transition-colors">
@@ -36,7 +38,7 @@ export const Footer = () => {
 
           {/* Categories */}
           <div>
-            <h3 className="font-semibold text-lg mb-4 text-primary-foreground">Sections</h3>
+            <h3 className="font-semibold text-lg mb-4 text-primary-foreground">Rubriques</h3>
             <ul className="space-y-2">
               {CATEGORIES.slice(0, 6).map((category) => (
                 <li key={category}>
@@ -53,16 +55,16 @@ export const Footer = () => {
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-lg mb-4 text-primary-foreground">Company</h3>
+            <h3 className="font-semibold text-lg mb-4 text-primary-foreground">Société</h3>
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  About Us
+                  À propos
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  Careers
+                  Carrières
                 </a>
               </li>
               <li>
@@ -72,12 +74,12 @@ export const Footer = () => {
               </li>
               <li>
                 <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  Advertise
+                  Publicité
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  Ethics Policy
+                  Code d'éthique
                 </a>
               </li>
             </ul>
@@ -87,12 +89,12 @@ export const Footer = () => {
           <div>
             <h3 className="font-semibold text-lg mb-4 text-primary-foreground">Newsletter</h3>
             <p className="text-sm text-primary-foreground/70 mb-4">
-              Get the morning headlines delivered to your inbox.
+              Recevez les titres du matin directement dans votre boîte de réception.
             </p>
             <div className="flex gap-2">
               <input
                 type="email"
-                placeholder="Your email"
+                placeholder="Votre email"
                 className="flex-1 px-4 py-2 bg-primary-foreground/10 border border-primary-foreground/20 rounded-lg text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:border-primary-foreground/40"
               />
               <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
@@ -103,11 +105,11 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-primary-foreground/20 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-primary-foreground/60">
-          <p>© 2024 The Daily Chronicle. All rights reserved.</p>
+          <p>© 2024 JEUOB. Tous droits réservés.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-primary-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-primary-foreground transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-primary-foreground transition-colors">Cookie Policy</a>
+            <a href="#" className="hover:text-primary-foreground transition-colors">Politique de confidentialité</a>
+            <a href="#" className="hover:text-primary-foreground transition-colors">Conditions d'utilisation</a>
+            <a href="#" className="hover:text-primary-foreground transition-colors">Politique des cookies</a>
           </div>
         </div>
       </div>

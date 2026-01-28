@@ -1,90 +1,82 @@
 import { useState, useEffect } from 'react';
 import { PublicLayout } from '@/components/PublicLayout';
-import { HeroArticle } from '@/components/HeroArticle';
-import { ArticleCard } from '@/components/ArticleCard';
-import { LiveFeed } from '@/components/LiveFeed';
+import { HeroShowcase } from '@/components/HeroShowcase';
+import { AdSidebar } from '@/components/AdSidebar';
+import { ArticleSearch } from '@/components/ArticleSearch';
+import { CategoryRow } from '@/components/CategoryRow';
 import { getPublishedArticles, getFeaturedArticle } from '@/lib/articles';
-import { Article } from '@/types/article';
+import { Article, CATEGORIES } from '@/types/article';
 
 const Index = () => {
   const [featuredArticle, setFeaturedArticle] = useState<Article | undefined>();
+  const [flashbackArticles, setFlashbackArticles] = useState<Article[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const published = getPublishedArticles();
     const featured = getFeaturedArticle();
-    
+
+    // Sort by latest for flashbacks, excluding the featured one
+    const flashbacks = [...published]
+      .filter(a => a.id !== featured?.id)
+      .slice(0, 5);
+
     setFeaturedArticle(featured);
+    setFlashbackArticles(flashbacks);
     setArticles(published.filter(a => !a.isFeatured));
   }, []);
 
-  // Get main grid articles (left column)
-  const mainArticles = articles.slice(0, 4);
-  // Get secondary featured articles
-  const secondaryFeatured = articles.slice(0, 2);
-  // Get rest for live feed
-  const liveFeedArticles = articles.slice(2);
+  const filteredArticles = articles.filter(article =>
+    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    article.summary.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group filtered articles by category
+  const articlesByCategory = CATEGORIES.reduce((acc, category) => {
+    const categoryArticles = filteredArticles.filter(a => a.category === category);
+    if (categoryArticles.length > 0) {
+      acc[category] = categoryArticles;
+    }
+    return acc;
+  }, {} as Record<string, Article[]>);
 
   return (
     <PublicLayout>
       {/* Hero Section */}
-      {featuredArticle && <HeroArticle article={featuredArticle} />}
+      {featuredArticle && (
+        <HeroShowcase
+          featuredArticle={featuredArticle}
+          flashbackArticles={flashbackArticles}
+        />
+      )}
 
       {/* Main Content */}
       <div className="container py-12">
+        {/* Search Section */}
+        <ArticleSearch onSearch={setSearchQuery} />
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Main Articles Column */}
           <div className="lg:col-span-8">
-            {/* Secondary Featured */}
-            <section className="mb-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {secondaryFeatured.map((article, index) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    variant="featured"
-                    index={index}
-                  />
-                ))}
-              </div>
-            </section>
+            {Object.entries(articlesByCategory).map(([category, catArticles]) => (
+              <CategoryRow
+                key={category}
+                category={category}
+                articles={catArticles}
+              />
+            ))}
 
-            {/* Divider */}
-            <div className="divider mb-12" />
-
-            {/* Latest News */}
-            <section>
-              <div className="flex items-center gap-4 mb-8">
-                <h2 className="headline-lg text-headline">Latest News</h2>
-                <div className="flex-1 h-px bg-divider" />
+            {filteredArticles.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground italic">Aucun article ne correspond à votre recherche.</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {mainArticles.map((article, index) => (
-                  <ArticleCard key={article.id} article={article} index={index} />
-                ))}
-              </div>
-            </section>
+            )}
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-4">
-            <LiveFeed articles={liveFeedArticles} />
-
-            {/* Newsletter Signup */}
-            <div className="mt-12 p-6 bg-card rounded-lg border border-divider">
-              <h3 className="headline-sm text-headline mb-2">Stay Informed</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Get breaking news and analysis delivered to your inbox.
-              </p>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-3 bg-background border border-input rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
-                Subscribe
-              </button>
-            </div>
+          <div className="lg:col-span-4 lg:border-l lg:border-divider lg:pl-8">
+            <AdSidebar />
           </div>
         </div>
       </div>

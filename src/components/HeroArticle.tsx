@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, Eye } from 'lucide-react';
 import { Article } from '@/types/article';
 import { formatDate } from '@/lib/articles';
 
@@ -62,7 +62,12 @@ export const HeroArticle = ({ article }: HeroArticleProps) => {
             <span className="w-1 h-1 rounded-full bg-white/50" />
             <span className="flex items-center gap-1">
               <Clock size={14} />
-              {article.readingTime} min read
+              {article.readingTime} min de lecture
+            </span>
+            <span className="w-1 h-1 rounded-full bg-white/50" />
+            <span className="flex items-center gap-1">
+              <Eye size={14} />
+              {(article.views || 0).toLocaleString()} vues
             </span>
           </div>
         </motion.div>

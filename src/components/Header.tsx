@@ -1,21 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CATEGORIES } from '@/types/article';
+
+const NAV_ITEMS = [
+  { name: 'Accueil', path: '/' },
+  { name: 'Monde', path: '/category/monde' },
+  { name: 'Politique', path: '/category/politique' },
+  { name: 'Économie', path: '/category/economie' },
+  { name: 'Technologie', path: '/category/technologie' },
+  { name: 'Culture', path: '/category/culture' },
+  { name: 'Sport', path: '/category/sport' },
+];
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isHidden, setIsHidden] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > 100) {
         setIsScrolled(true);
         if (currentScrollY > lastScrollY && currentScrollY > 200) {
@@ -27,7 +35,7 @@ export const Header = () => {
         setIsScrolled(false);
         setIsHidden(false);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -36,128 +44,119 @@ export const Header = () => {
   }, [lastScrollY]);
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
+    setIsMenuOpen(false);
   }, [location]);
-
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
 
   return (
     <>
-      {/* Top bar with date */}
-      <div className="bg-background border-b border-divider py-2">
-        <div className="container flex items-center justify-between text-sm text-muted-foreground">
-          <span>{currentDate}</span>
-          <span className="hidden md:block">Your trusted source for news</span>
-        </div>
-      </div>
-
       {/* Main header */}
       <header
-        className={`sticky top-0 z-50 bg-background transition-all duration-300 ${
-          isScrolled ? 'shadow-md' : ''
-        } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+        className={`fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md transition-all duration-300 border-b border-divider ${isScrolled ? 'py-2 shadow-md' : 'py-4'
+          } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
       >
-        <div className="container py-4">
-          {/* Logo and search row */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              className="md:hidden p-2 -ml-2 hover:bg-muted rounded-lg transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-
-            <Link to="/" className="flex-1 text-center md:text-left">
-              <h1 className="font-serif text-3xl md:text-4xl font-bold text-headline tracking-tight">
-                The Daily Chronicle
-              </h1>
+        <div className="container">
+          {/* Logo row */}
+          <div className="flex items-center justify-between gap-4 py-2">
+            <Link to="/" className="shrink-0 flex items-center gap-3">
+              <img
+                src="/assets/JEUOB_LOGO-removebg-preview.png"
+                alt="JEUOB Logo"
+                className="h-12 md:h-20 w-auto object-contain transition-all"
+              />
+              <div className="md:hidden">
+                <h1 className="font-serif text-xl font-bold text-primary leading-tight">
+                  JEUOB
+                </h1>
+              </div>
             </Link>
 
-            <button
-              className="p-2 -mr-2 hover:bg-muted rounded-lg transition-colors"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              aria-label="Toggle search"
-            >
-              <Search size={24} />
-            </button>
+            <div className="flex-1 text-center hidden md:block">
+              <h1 className="font-serif text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
+                Le Journal de l’Etudiant de l’UOB
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors text-primary"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Ouvrir le menu"
+              >
+                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
+            </div>
           </div>
 
-          {/* Search bar */}
-          <AnimatePresence>
-            {isSearchOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden mb-4"
-              >
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-                  <input
-                    type="search"
-                    placeholder="Search articles..."
-                    className="w-full pl-12 pr-4 py-3 bg-muted rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary"
-                    autoFocus
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Desktop Navigation */}
-          <nav className="hidden md:block border-t border-b border-divider py-3">
+          <nav className="hidden md:block mt-4 border-t border-divider pt-4">
             <ul className="flex items-center justify-center gap-8">
-              {CATEGORIES.map((category) => (
-                <li key={category}>
+              {NAV_ITEMS.map((item) => (
+                <li key={item.name}>
                   <Link
-                    to={`/category/${category.toLowerCase()}`}
-                    className="text-sm font-medium uppercase tracking-wider text-subheadline hover:text-primary transition-colors"
+                    to={item.path}
+                    className="text-sm font-bold uppercase tracking-wider text-subheadline hover:text-primary transition-colors relative group"
                   >
-                    {category}
+                    {item.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
         </div>
+      </header>
 
-        {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
+      {/* Mobile Navigation Overlay - Outside Header for best visibility */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <div className="fixed inset-0 z-[100] md:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
             <motion.nav
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden border-t border-divider overflow-hidden"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute top-0 right-0 bottom-0 w-[260px] bg-white shadow-2xl flex flex-col pt-10"
             >
-              <ul className="container py-4 space-y-2">
-                {CATEGORIES.map((category, index) => (
+              <div className="px-5 py-4 flex items-center justify-between border-b border-divider bg-white">
+                <span className="text-lg font-serif font-bold text-slate-900 uppercase tracking-tight">Menu</span>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-1.5 hover:bg-slate-100 rounded-full text-slate-900 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <ul className="flex-1 overflow-y-auto py-4 bg-white">
+                {NAV_ITEMS.map((item, index) => (
                   <motion.li
-                    key={category}
-                    initial={{ opacity: 0, x: -20 }}
+                    key={item.name}
+                    initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: 0.1 + index * 0.05 }}
                   >
                     <Link
-                      to={`/category/${category.toLowerCase()}`}
-                      className="block py-2 text-lg font-medium text-subheadline hover:text-primary transition-colors"
+                      to={item.path}
+                      className="flex items-center justify-between px-6 py-4 text-lg font-serif font-bold text-slate-900 hover:bg-slate-50 transition-all border-b border-divider/40"
                     >
-                      {category}
+                      {item.name}
+                      <span className="text-slate-300 text-xs">→</span>
                     </Link>
                   </motion.li>
                 ))}
               </ul>
             </motion.nav>
-          )}
-        </AnimatePresence>
-      </header>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Spacer to prevent content from going under the fixed header */}
+      <div className="h-[120px] md:h-[200px]" />
     </>
   );
 };

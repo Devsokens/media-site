@@ -23,8 +23,8 @@
     --popover: 40 20% 98%;
     --popover-foreground: 220 20% 10%;
 
-    /* Deep burgundy accent */
-    --primary: 350 60% 35%;
+    /* JEUOB Official Color: #115d6b */
+    --primary: 189 72% 24%;
     --primary-foreground: 40 20% 98%;
 
     --secondary: 40 10% 92%;
@@ -33,7 +33,7 @@
     --muted: 40 10% 90%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 350 60% 35%;
+    --accent: 189 72% 24%;
     --accent-foreground: 40 20% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -41,15 +41,15 @@
 
     --border: 40 15% 88%;
     --input: 40 15% 88%;
-    --ring: 350 60% 35%;
+    --ring: 189 72% 24%;
 
     --radius: 0.375rem;
 
     /* Custom newspaper tokens */
-    --headline: 220 20% 8%;
-    --subheadline: 220 15% 25%;
+    --headline: 189 60% 12%;
+    --subheadline: 189 30% 25%;
     --body-text: 220 10% 30%;
-    --category-tag: 350 60% 35%;
+    --category-tag: 189 72% 24%;
     --divider: 40 20% 85%;
     --hero-overlay: 220 30% 10%;
 
@@ -78,8 +78,8 @@
     --popover: 220 20% 8%;
     --popover-foreground: 40 10% 95%;
 
-    --primary: 350 55% 50%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 189 65% 45%;
+    --primary-foreground: 189 20% 8%;
 
     --secondary: 220 15% 18%;
     --secondary-foreground: 40 10% 95%;
@@ -87,8 +87,8 @@
     --muted: 220 15% 20%;
     --muted-foreground: 40 10% 60%;
 
-    --accent: 350 55% 50%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 189 65% 45%;
+    --accent-foreground: 189 20% 8%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -100,7 +100,7 @@
     --headline: 40 10% 95%;
     --subheadline: 40 10% 80%;
     --body-text: 40 10% 70%;
-    --category-tag: 350 55% 50%;
+    --category-tag: 189 65% 45%;
     --divider: 220 15% 25%;
     --hero-overlay: 220 30% 5%;
   }
@@ -116,7 +116,12 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', Georgia, serif;
     @apply text-headline;
   }
@@ -216,17 +221,13 @@
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Selection */

@@ -1,413 +1,261 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  Quote,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Heading1,
-  Heading2,
-  Save,
-  Eye,
-  ArrowLeft,
-} from 'lucide-react';
+
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
-  saveArticle,
-  updateArticle,
-  getArticleById,
-  calculateReadingTime,
-} from '@/lib/articles';
-import { CATEGORIES, Article } from '@/types/article';
-import { useToast } from '@/hooks/use-toast';
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/use-toast';
+import { getArticleById, saveArticle, updateArticle } from '@/lib/articles';
+import { ArticleFormData } from '@/types/article';
+import { ArrowLeft, Save, Upload, Image as ImageIcon } from 'lucide-react';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
+
+const CATEGORIES = [
+    'Politique',
+    'Économie',
+    'Société',
+    'Monde',
+    'Culture',
+    'Sport',
+    'Tech',
+    'Environnement',
+];
 
 const ArticleEditor = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const isEditing = Boolean(id);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { toast } = useToast();
+    const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  const [title, setTitle] = useState('');
-  const [summary, setSummary] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState<string>(CATEGORIES[0]);
-  const [coverImage, setCoverImage] = useState('');
-  const [author, setAuthor] = useState('Editorial Staff');
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (id) {
-      const article = getArticleById(id);
-      if (article) {
-        setTitle(article.title);
-        setSummary(article.summary);
-        setContent(article.content);
-        setCategory(article.category);
-        setCoverImage(article.coverImage);
-        setAuthor(article.author);
-        setIsFeatured(article.isFeatured);
-      }
-    }
-  }, [id]);
-
-  const handleSave = useCallback(
-    async (publish: boolean) => {
-      if (!title.trim()) {
-        toast({
-          title: 'Error',
-          description: 'Please enter a title',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (!content.trim()) {
-        toast({
-          title: 'Error',
-          description: 'Please enter some content',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      setIsSaving(true);
-
-      try {
-        const articleData = {
-          title,
-          summary,
-          content,
-          category,
-          coverImage:
-            coverImage ||
-            'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&h=600&fit=crop',
-          author,
-          readingTime: calculateReadingTime(content),
-          publishedAt: publish ? new Date().toISOString() : '',
-          isPublished: publish,
-          isFeatured,
-        };
-
-        if (isEditing && id) {
-          updateArticle(id, articleData);
-          toast({
-            title: 'Success',
-            description: `Article ${publish ? 'published' : 'saved as draft'}`,
-          });
-        } else {
-          saveArticle(articleData);
-          toast({
-            title: 'Success',
-            description: `Article ${publish ? 'published' : 'saved as draft'}`,
-          });
+    const { register, control, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<ArticleFormData>({
+        defaultValues: {
+            isPublished: false,
+            readingTime: 5,
+            views: 0,
+            author: 'Admin',
         }
+    });
 
-        navigate('/secret-editor-access');
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save article',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [title, summary, content, category, coverImage, author, isFeatured, isEditing, id, navigate, toast]
-  );
+    const isPublished = watch('isPublished');
 
-  const insertFormatting = (tag: string, wrapper?: string) => {
-    const textarea = document.getElementById('content-editor') as HTMLTextAreaElement;
-    if (!textarea) return;
+    useEffect(() => {
+        if (id) {
+            const article = getArticleById(id);
+            if (article) {
+                reset(article);
+                setCoverPreview(article.coverImage);
+            } else {
+                navigate('/admin-jeuob/articles');
+                toast({
+                    title: "Erreur",
+                    description: "Article introuvable",
+                    variant: "destructive",
+                });
+            }
+        }
+    }, [id, reset, navigate, toast]);
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCoverPreview(reader.result as string);
+                setValue('coverImage', reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-    let newText = '';
-    if (wrapper) {
-      newText = `<${tag}>${selectedText}</${tag}>`;
-    } else if (tag === 'ul' || tag === 'ol') {
-      newText = `<${tag}>\n  <li>${selectedText || 'List item'}</li>\n</${tag}>`;
-    } else if (tag === 'blockquote') {
-      newText = `<blockquote>${selectedText || 'Quote'}</blockquote>`;
-    } else if (tag === 'h1' || tag === 'h2') {
-      newText = `<${tag}>${selectedText || 'Heading'}</${tag}>`;
-    } else if (tag === 'img') {
-      const url = prompt('Enter image URL:');
-      if (url) {
-        newText = `<img src="${url}" alt="${selectedText || 'Image'}" />`;
-      } else {
-        return;
-      }
-    } else if (tag === 'a') {
-      const url = prompt('Enter link URL:');
-      if (url) {
-        newText = `<a href="${url}">${selectedText || 'Link text'}</a>`;
-      } else {
-        return;
-      }
-    } else {
-      newText = `<${tag}>${selectedText}</${tag}>`;
-    }
+    const onSubmit = async (data: ArticleFormData) => {
+        try {
+            if (id) {
+                updateArticle(id, data);
+                toast({
+                    title: "Succès",
+                    description: "Article mis à jour avec succès",
+                });
+            } else {
+                saveArticle(data);
+                toast({
+                    title: "Succès",
+                    description: "Article créé avec succès",
+                });
+            }
+            navigate('/admin-jeuob/articles');
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Erreur",
+                description: "Une erreur est survenue lors de la sauvegarde",
+                variant: "destructive",
+            });
+        }
+    };
 
-    const newContent = content.substring(0, start) + newText + content.substring(end);
-    setContent(newContent);
-  };
+    return (
+        <AdminLayout>
+            <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto space-y-8 pb-10">
+                {/* Header */}
+                <div className="flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-4 border-b border-border -mx-4 px-4 md:-mx-8 md:px-8">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate('/admin-jeuob/articles')}
+                        >
+                            <ArrowLeft size={20} />
+                        </Button>
+                        <div>
+                            <h1 className="headline-lg text-headline">
+                                {id ? 'Modifier l\'article' : 'Nouvel article'}
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                {id ? 'Mettez à jour votre contenu' : 'Créez un nouveau contenu captivant'}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button type="submit" disabled={isSubmitting} className="gap-2">
+                            <Save size={18} />
+                            {isSubmitting ? 'Sauvegarde...' : 'Enregistrer'}
+                        </Button>
+                    </div>
+                </div>
 
-  return (
-    <AdminLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigate('/secret-editor-access')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft size={20} />
-            Back
-          </button>
-          <div className="flex gap-3">
-            <button
-              onClick={() => handleSave(false)}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Save size={18} />
-              Save Draft
-            </button>
-            <button
-              onClick={() => handleSave(true)}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Eye size={18} />
-              Publish
-            </button>
-          </div>
-        </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="md:col-span-2 space-y-6">
+                        <div className="space-y-4">
+                            <Label htmlFor="title" className="text-base font-semibold">Titre de l'article</Label>
+                            <Input
+                                id="title"
+                                placeholder="Un titre accrocheur..."
+                                className="text-lg font-serif"
+                                {...register('title', { required: 'Le titre est requis' })}
+                            />
+                            {errors.title && <p className="text-destructive text-sm">{errors.title.message}</p>}
+                        </div>
 
-        {/* Editor Form */}
-        <div className="space-y-6">
-          {/* Title */}
-          <div>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Article title..."
-              className="w-full text-4xl font-serif font-bold bg-transparent border-0 outline-none placeholder:text-muted-foreground/50"
-            />
-          </div>
+                        <div className="space-y-4">
+                            <Label htmlFor="summary" className="text-base font-semibold">Chapô (Extrait)</Label>
+                            <Textarea
+                                id="summary"
+                                placeholder="Un résumé court pour donner envie de lire..."
+                                className="h-24 resize-none"
+                                {...register('summary', { required: 'L\'extrait est requis' })}
+                            />
+                            {errors.summary && <p className="text-destructive text-sm">{errors.summary.message}</p>}
+                        </div>
 
-          {/* Summary */}
-          <div>
-            <textarea
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              placeholder="Write a brief summary..."
-              rows={2}
-              className="w-full text-lg bg-transparent border-0 outline-none resize-none placeholder:text-muted-foreground/50 text-muted-foreground"
-            />
-          </div>
+                        <div className="space-y-4">
+                            <Label htmlFor="content" className="text-base font-semibold">Contenu</Label>
+                            <Controller
+                                name="content"
+                                control={control}
+                                rules={{ required: 'Le contenu est requis' }}
+                                render={({ field }) => (
+                                    <RichTextEditor
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
+                            />
+                            {errors.content && <p className="text-destructive text-sm">{errors.content.message}</p>}
+                        </div>
+                    </div>
 
-          {/* Meta Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Category
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Author
-              </label>
-              <input
-                type="text"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Cover Image URL
-              </label>
-              <input
-                type="url"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </div>
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        <div className="admin-card space-y-4">
+                            <h3 className="font-semibold text-headline border-b border-border pb-2">Status & Visibilité</h3>
 
-          {/* Featured Toggle */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="featured"
-              checked={isFeatured}
-              onChange={(e) => setIsFeatured(e.target.checked)}
-              className="w-4 h-4 rounded border-input"
-            />
-            <label htmlFor="featured" className="text-sm text-muted-foreground">
-              Feature this article on the homepage
-            </label>
-          </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="published" className="cursor-pointer">Publier l'article</Label>
+                                <Switch
+                                    id="published"
+                                    checked={isPublished}
+                                    onCheckedChange={(checked) => setValue('isPublished', checked)}
+                                />
+                            </div>
 
-          {/* Cover Preview */}
-          {coverImage && (
-            <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-              <img
-                src={coverImage}
-                alt="Cover preview"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&h=600&fit=crop';
-                }}
-              />
-            </div>
-          )}
+                            <div className="space-y-2">
+                                <Label>Catégorie</Label>
+                                <Select onValueChange={(val) => setValue('category', val)} defaultValue={watch('category')}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Choisir une catégorie" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CATEGORIES.map((cat) => (
+                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <input type="hidden" {...register('category', { required: true })} />
+                            </div>
 
-          {/* Content Editor */}
-          <div>
-            {/* Toolbar */}
-            <div className="editor-toolbar">
-              <button
-                type="button"
-                onClick={() => insertFormatting('strong')}
-                className="editor-btn"
-                title="Bold"
-              >
-                <Bold size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('em')}
-                className="editor-btn"
-                title="Italic"
-              >
-                <Italic size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('u')}
-                className="editor-btn"
-                title="Underline"
-              >
-                <Underline size={18} />
-              </button>
-              <div className="w-px h-6 bg-border mx-1" />
-              <button
-                type="button"
-                onClick={() => insertFormatting('h1')}
-                className="editor-btn"
-                title="Heading 1"
-              >
-                <Heading1 size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('h2')}
-                className="editor-btn"
-                title="Heading 2"
-              >
-                <Heading2 size={18} />
-              </button>
-              <div className="w-px h-6 bg-border mx-1" />
-              <button
-                type="button"
-                onClick={() => insertFormatting('ul')}
-                className="editor-btn"
-                title="Bullet List"
-              >
-                <List size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('ol')}
-                className="editor-btn"
-                title="Numbered List"
-              >
-                <ListOrdered size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('blockquote')}
-                className="editor-btn"
-                title="Quote"
-              >
-                <Quote size={18} />
-              </button>
-              <div className="w-px h-6 bg-border mx-1" />
-              <button
-                type="button"
-                onClick={() => insertFormatting('a')}
-                className="editor-btn"
-                title="Link"
-              >
-                <LinkIcon size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => insertFormatting('img')}
-                className="editor-btn"
-                title="Image"
-              >
-                <ImageIcon size={18} />
-              </button>
-            </div>
+                            <div className="space-y-2">
+                                <Label>Temps de lecture (min)</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    {...register('readingTime', { valueAsNumber: true })}
+                                />
+                            </div>
 
-            {/* Content Area */}
-            <textarea
-              id="content-editor"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your article content here... You can use HTML tags for formatting."
-              className="editor-content w-full min-h-[400px] font-mono text-sm resize-y rounded-t-none"
-            />
-          </div>
+                            <div className="space-y-2">
+                                <Label>Auteur</Label>
+                                <Input {...register('author')} />
+                            </div>
+                        </div>
 
-          {/* Preview */}
-          {content && (
-            <div className="mt-8 p-8 bg-card rounded-lg border border-border">
-              <h3 className="text-sm font-medium text-muted-foreground mb-4">
-                Content Preview
-              </h3>
-              <div
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </AdminLayout>
-  );
+                        <div className="admin-card space-y-4">
+                            <h3 className="font-semibold text-headline border-b border-border pb-2">Image de couverture</h3>
+
+                            <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors bg-muted flex flex-col items-center justify-center cursor-pointer group">
+                                {coverPreview ? (
+                                    <>
+                                        <img src={coverPreview} alt="Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <p className="text-white font-medium flex items-center gap-2">
+                                                <Upload size={18} /> Changer
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center p-4">
+                                        <ImageIcon className="mx-auto text-muted-foreground mb-2" size={32} />
+                                        <p className="text-sm text-muted-foreground font-medium">Cliquez pour ajouter une image</p>
+                                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG jusqu'à 5MB</p>
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            <input type="hidden" {...register('coverImage', { required: 'L\'image est requise' })} />
+                            {errors.coverImage && <p className="text-destructive text-sm">{errors.coverImage.message}</p>}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </AdminLayout>
+    );
 };
 
 export default ArticleEditor;

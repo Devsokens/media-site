@@ -2,14 +2,15 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  PenSquare,
   FileText,
   BarChart3,
   Settings,
   LogOut,
   Menu,
   X,
-  Home,
+  Zap,
+  Megaphone,
+  Users,
   ChevronLeft,
 } from 'lucide-react';
 
@@ -18,10 +19,12 @@ interface AdminLayoutProps {
 }
 
 const navItems = [
-  { icon: PenSquare, label: 'New Article', path: '/secret-editor-access/new' },
-  { icon: FileText, label: 'All Articles', path: '/secret-editor-access' },
-  { icon: BarChart3, label: 'Analytics', path: '/secret-editor-access/analytics' },
-  { icon: Settings, label: 'Settings', path: '/secret-editor-access/settings' },
+  { icon: BarChart3, label: 'Tableau de bord', path: '/admin-jeuob' },
+  { icon: FileText, label: 'Articles', path: '/admin-jeuob/articles' },
+  { icon: Zap, label: 'Flash info', path: '/admin-jeuob/flash' },
+  { icon: Megaphone, label: 'Publicité', path: '/admin-jeuob/ads' },
+  { icon: Users, label: 'Utilisateurs', path: '/admin-jeuob/users' },
+  { icon: Settings, label: 'Paramètres', path: '/admin-jeuob/settings' },
 ];
 
 export const AdminLayout = ({ children }: AdminLayoutProps) => {
@@ -31,19 +34,18 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex overflow-x-hidden">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ${
-          isSidebarOpen ? 'w-64' : 'w-20'
-        }`}
+        className={`hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 fixed top-0 bottom-0 left-0 z-50 border-r border-sidebar-border ${isSidebarOpen ? 'w-64' : 'w-20'
+          }`}
       >
         {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             {isSidebarOpen && (
               <h1 className="font-serif text-xl font-bold text-sidebar-foreground">
-                Editor
+                JEUOB Admin
               </h1>
             )}
             <button
@@ -59,7 +61,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -67,14 +69,13 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                        : 'hover:bg-sidebar-accent text-sidebar-foreground'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                      : 'hover:bg-sidebar-accent text-sidebar-foreground'
+                      }`}
                   >
                     <item.icon size={20} />
-                    {isSidebarOpen && <span>{item.label}</span>}
+                    {isSidebarOpen && <span className="font-medium">{item.label}</span>}
                   </Link>
                 </li>
               );
@@ -82,100 +83,109 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           </ul>
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-sidebar-border space-y-2">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent transition-colors"
-          >
-            <Home size={20} />
-            {isSidebarOpen && <span>View Site</span>}
-          </Link>
+        {/* Footer with Logout */}
+        <div className="p-4 border-t border-sidebar-border">
           <button
-            onClick={() => navigate('/')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent transition-colors text-left"
+            onClick={() => {
+              if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                navigate('/');
+              }
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-left"
           >
             <LogOut size={20} />
-            {isSidebarOpen && <span>Exit Admin</span>}
+            {isSidebarOpen && <span className="font-medium">Déconnexion</span>}
           </button>
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar text-sidebar-foreground">
-        <div className="flex items-center justify-between p-4">
-          <button
-            onClick={() => setIsMobileSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-sidebar-accent"
-          >
-            <Menu size={24} />
-          </button>
-          <h1 className="font-serif text-xl font-bold">Editor</h1>
-          <Link to="/" className="p-2 rounded-lg hover:bg-sidebar-accent">
-            <Home size={24} />
-          </Link>
-        </div>
-      </div>
-
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {isMobileSidebarOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden fixed inset-0 bg-black/50 z-50"
-            />
-            <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="md:hidden fixed left-0 top-0 bottom-0 w-72 bg-sidebar text-sidebar-foreground z-50"
+      {/* Main Content Area - with margin for the sidebar on desktop */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-20'}`}>
+        {/* Mobile Header */}
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
+          <div className="flex items-center justify-between p-4">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-2 rounded-lg hover:bg-sidebar-accent"
             >
-              <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-                <h1 className="font-serif text-xl font-bold">Editor</h1>
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-2 rounded-lg hover:bg-sidebar-accent"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <nav className="p-4">
-                <ul className="space-y-2">
-                  {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                      <li key={item.path}>
-                        <Link
-                          to={item.path}
-                          onClick={() => setIsMobileSidebarOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                            isActive
-                              ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                              : 'hover:bg-sidebar-accent'
-                          }`}
-                        >
-                          <item.icon size={20} />
-                          <span>{item.label}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+              <Menu size={24} />
+            </button>
+            <h1 className="font-serif text-xl font-bold text-white">JEUOB Admin</h1>
+            <div className="w-10" />
+          </div>
+        </div>
 
-      {/* Main Content */}
-      <main className="flex-1 md:p-8 pt-20 md:pt-8 p-4 overflow-auto">
-        {children}
-      </main>
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {isMobileSidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              />
+              <motion.aside
+                initial={{ x: -280 }}
+                animate={{ x: 0 }}
+                exit={{ x: -280 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="md:hidden fixed left-0 top-0 bottom-0 w-72 bg-sidebar text-sidebar-foreground z-50 flex flex-col shadow-2xl"
+              >
+                <div className="flex items-center justify-between p-6 border-b border-sidebar-border">
+                  <h1 className="font-serif text-xl font-bold text-white">JEUOB Admin</h1>
+                  <button
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="p-2 rounded-lg hover:bg-sidebar-accent"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <nav className="flex-1 p-4 overflow-y-auto">
+                  <ul className="space-y-2">
+                    {navItems.map((item) => {
+                      const isActive = location.pathname === item.path;
+                      return (
+                        <li key={item.path}>
+                          <Link
+                            to={item.path}
+                            onClick={() => setIsMobileSidebarOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                              : 'hover:bg-sidebar-accent'
+                              }`}
+                          >
+                            <item.icon size={20} />
+                            <span className="font-medium">{item.label}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </nav>
+                <div className="p-4 border-t border-sidebar-border">
+                  <button
+                    onClick={() => {
+                      setIsMobileSidebarOpen(false);
+                      navigate('/');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <LogOut size={20} />
+                    <span className="font-medium">Déconnexion</span>
+                  </button>
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 bg-muted/30 min-h-screen">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

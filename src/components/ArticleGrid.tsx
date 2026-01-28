@@ -10,7 +10,7 @@ export const ArticleGrid = ({ articles, title }: ArticleGridProps) => {
   if (articles.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No articles found.</p>
+        <p className="text-muted-foreground">Aucun article trouvé.</p>
       </div>
     );
   }
@@ -23,7 +23,7 @@ export const ArticleGrid = ({ articles, title }: ArticleGridProps) => {
           <div className="flex-1 h-px bg-divider" />
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {articles.map((article, index) => (
           <ArticleCard key={article.id} article={article} index={index} />
         ))}

@@ -1,274 +1,232 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  PenSquare,
-  Eye,
   FileText,
-  Clock,
+  Users,
+  Eye,
   TrendingUp,
-  Edit,
-  Trash2,
-  MoreHorizontal,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { getArticles, deleteArticle, formatDate } from '@/lib/articles';
+import { getArticles } from '@/lib/articles';
 import { Article } from '@/types/article';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
 
-const AdminDashboard = () => {
+// Mock data for charts
+const viewData = [
+  { name: 'Lun', views: 400 },
+  { name: 'Mar', views: 300 },
+  { name: 'Mer', views: 600 },
+  { name: 'Jeu', views: 800 },
+  { name: 'Ven', views: 500 },
+  { name: 'Sam', views: 900 },
+  { name: 'Dim', views: 1100 },
+];
+
+const categoryData = [
+  { name: 'Actualité', value: 400 },
+  { name: 'Politique', value: 300 },
+  { name: 'Économie', value: 200 },
+  { name: 'Culture', value: 150 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+const SecretEditorAccess = () => {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
     setArticles(getArticles());
   }, []);
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      deleteArticle(id);
-      setArticles(getArticles());
-    }
-  };
-
-  const filteredArticles = articles.filter((article) => {
-    if (filter === 'published') return article.isPublished;
-    if (filter === 'draft') return !article.isPublished;
-    return true;
-  });
-
-  const stats = {
-    total: articles.length,
-    published: articles.filter((a) => a.isPublished).length,
-    drafts: articles.filter((a) => !a.isPublished).length,
-    totalReading: articles.reduce((acc, a) => acc + a.readingTime, 0),
-  };
+  const totalViews = articles.reduce((acc, a) => acc + (a.views || 0), 0);
+  const publishedArticles = articles.filter(a => a.isPublished).length;
 
   return (
     <AdminLayout>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="headline-lg text-headline">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your articles and publications
-            </p>
-          </div>
-          <Link
-            to="/secret-editor-access/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-          >
-            <PenSquare size={18} />
-            New Article
-          </Link>
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="headline-lg text-headline">Tableau de bord</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Bienvenue sur votre espace d'administration "JEUOB". Voici un aperçu de vos performances.
+          </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="admin-card"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <FileText className="text-primary" size={20} />
-              <span className="text-sm text-muted-foreground">Total</span>
-            </div>
-            <p className="admin-stat">{stats.total}</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="admin-card"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Eye className="text-primary" size={20} />
-              <span className="text-sm text-muted-foreground">Published</span>
-            </div>
-            <p className="admin-stat">{stats.published}</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="admin-card"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="text-muted-foreground" size={20} />
-              <span className="text-sm text-muted-foreground">Drafts</span>
-            </div>
-            <p className="admin-stat">{stats.drafts}</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="admin-card"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="text-sidebar-primary" size={20} />
-              <span className="text-sm text-muted-foreground">Read Time</span>
-            </div>
-            <p className="admin-stat">{stats.totalReading}m</p>
-          </motion.div>
-        </div>
-
-        {/* Filter */}
-        <div className="flex gap-2 mb-6">
-          {(['all', 'published', 'draft'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === f
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-              }`}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[
+            { label: 'Vues totales', value: totalViews, icon: Eye, color: 'text-blue-500', trend: '+12.5%', isUp: true },
+            { label: 'Articles publiés', value: publishedArticles, icon: FileText, color: 'text-green-500', trend: '+2', isUp: true },
+            { label: 'Lecteurs actifs', value: '1.2k', icon: Users, color: 'text-orange-500', trend: '-3.2%', isUp: false },
+            { label: 'Temps moyen', value: '4m 32s', icon: Clock, color: 'text-purple-500', trend: '+15s', isUp: true },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="admin-card hover:border-primary/50 transition-colors"
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-2 rounded-lg bg-muted`}>
+                  <stat.icon size={20} className={stat.color} />
+                </div>
+                <div className={`flex items-center gap-1 text-xs font-bold ${stat.isUp ? 'text-green-600' : 'text-red-600'}`}>
+                  {stat.trend}
+                  {stat.isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                </div>
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+              <p className="text-2xl font-bold text-headline mt-1">{stat.value}</p>
+            </motion.div>
           ))}
         </div>
 
-        {/* Articles Table */}
-        <div className="admin-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
-                    Title
-                  </th>
-                  <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground hidden md:table-cell">
-                    Category
-                  </th>
-                  <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">
-                    Author
-                  </th>
-                  <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground hidden md:table-cell">
-                    Date
-                  </th>
-                  <th className="text-right py-4 px-4 text-sm font-medium text-muted-foreground">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredArticles.map((article, index) => (
-                  <motion.tr
-                    key={article.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="border-b border-border last:border-0 hover:bg-muted/50"
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={article.coverImage}
-                          alt=""
-                          className="w-12 h-12 rounded object-cover hidden sm:block"
-                        />
-                        <div>
-                          <p className="font-medium text-foreground line-clamp-1">
-                            {article.title}
-                          </p>
-                          <p className="text-sm text-muted-foreground line-clamp-1 md:hidden">
-                            {article.category}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 hidden md:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {article.category}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 hidden lg:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {article.author}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          article.isPublished
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {article.isPublished ? 'Published' : 'Draft'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 hidden md:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(article.createdAt)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-                            <MoreHorizontal size={18} />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover border-border">
-                          <DropdownMenuItem asChild>
-                            <Link
-                              to={`/secret-editor-access/edit/${article.id}`}
-                              className="flex items-center gap-2"
-                            >
-                              <Edit size={16} />
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          {article.isPublished && (
-                            <DropdownMenuItem asChild>
-                              <Link
-                                to={`/article/${article.id}`}
-                                className="flex items-center gap-2"
-                              >
-                                <Eye size={16} />
-                                View
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(article.id)}
-                            className="flex items-center gap-2 text-destructive focus:text-destructive"
-                          >
-                            <Trash2 size={16} />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 admin-card h-[400px] flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-bold text-headline flex items-center gap-2">
+                <TrendingUp size={18} className="text-primary" />
+                Évolution des vues
+              </h3>
+              <select className="bg-muted border-none rounded-md text-xs px-2 py-1 outline-none">
+                <option>7 derniers jours</option>
+                <option>30 derniers jours</option>
+              </select>
+            </div>
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={viewData}>
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="#ef4444"
+                    fillOpacity={1}
+                    fill="url(#colorViews)"
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          {filteredArticles.length === 0 && (
-            <div className="text-center py-12">
-              <FileText className="mx-auto text-muted-foreground mb-4" size={48} />
-              <p className="text-muted-foreground">No articles found</p>
+          <div className="admin-card h-[400px] flex flex-col">
+            <h3 className="font-bold text-headline mb-6">Articles par catégorie</h3>
+            <div className="flex-1 min-h-0 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 admin-card">
+            <h3 className="font-bold text-headline mb-6">Articles récents</h3>
+            <div className="space-y-4">
+              {articles.slice(0, 5).map((article) => (
+                <div key={article.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
+                  <div className="flex items-center gap-4">
+                    <img src={article.coverImage} className="w-12 h-12 rounded-lg object-cover" alt="" />
+                    <div>
+                      <h4 className="font-bold text-headline text-sm line-clamp-1">{article.title}</h4>
+                      <p className="text-xs text-muted-foreground">{article.category} • Il y a 2h</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-headline">{article.views || 0}</span>
+                    <Eye size={14} className="text-muted-foreground" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="admin-card">
+            <h3 className="font-bold text-headline mb-6">Notifications</h3>
+            <div className="space-y-6">
+              {[
+                { label: 'Nouvel utilisateur', desc: 'Sékou vient de rejoindre l\'équipe', time: '10m', icon: Users, color: 'bg-blue-100 text-blue-600' },
+                { label: 'Article approuvé', desc: 'L\'article sur le pétrole est en ligne', time: '1h', icon: FileText, color: 'bg-green-100 text-green-600' },
+                { label: 'Alerte Système', desc: 'Mise à jour de maintenance prévue', time: '2h', icon: TrendingUp, color: 'bg-orange-100 text-orange-600' },
+              ].map((notif, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${notif.color}`}>
+                    <notif.icon size={18} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center w-full">
+                      <h5 className="text-sm font-bold text-headline">{notif.label}</h5>
+                      <span className="text-[10px] text-muted-foreground">{notif.time}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{notif.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>
   );
 };
 
-export default AdminDashboard;
+export default SecretEditorAccess;

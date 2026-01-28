@@ -7,6 +7,7 @@ export interface Article {
   coverImage: string;
   author: string;
   readingTime: number;
+  views: number;
   publishedAt: string;
   isPublished: boolean;
   isFeatured: boolean;
@@ -17,14 +18,16 @@ export interface Article {
 export type ArticleStatus = 'draft' | 'published';
 
 export const CATEGORIES = [
-  'World',
-  'Technology',
+  'Monde',
+  'Technologie',
   'Culture',
-  'Business',
-  'Science',
-  'Politics',
+  'Économie',
+  'Sciences',
+  'Politique',
   'Sports',
   'Opinion',
 ] as const;
 
 export type Category = typeof CATEGORIES[number];
+
+export type ArticleFormData = Omit<Article, 'id' | 'createdAt' | 'updatedAt'>;
