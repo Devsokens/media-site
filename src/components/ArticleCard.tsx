@@ -122,50 +122,50 @@ export const ArticleCard = ({ article, variant = 'default', index = 0 }: Article
         </div>
       </Link>
 
-      <div className="p-2 flex flex-col flex-1">
-        <div className="flex items-center gap-1.5 mb-1">
+      <div className="p-3 flex flex-col flex-1">
+        <div className="flex items-center gap-2 mb-1">
           <Link
             to={`/category/${article.category.toLowerCase()}`}
-            className="text-[8px] font-bold uppercase tracking-wider text-primary hover:underline"
+            className="text-[9px] font-bold uppercase tracking-wider text-primary hover:underline"
           >
             {article.category}
           </Link>
-          <span className="text-muted-foreground text-[8px]">•</span>
-          <span className="text-[8px] text-muted-foreground font-medium">
+          <span className="text-muted-foreground">•</span>
+          <span className="text-[9px] text-muted-foreground font-medium">
             {formatDateShort(article.publishedAt)}
           </span>
         </div>
 
         <Link to={`/article/${article.id}`}>
-          <h3 className="text-[11px] md:text-xs font-bold text-headline leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors">
+          <h3 className="text-xs md:text-sm font-bold text-headline leading-tight mb-1.5 line-clamp-2 hover:text-primary transition-colors">
             {article.title}
           </h3>
         </Link>
 
-        <div className="flex items-center gap-2 text-[8px] text-muted-foreground mb-2">
-          <span className="flex items-center gap-0.5">
-            <Clock size={8} />
+        <div className="flex items-center gap-2.5 text-[9px] text-muted-foreground mb-3">
+          <span className="flex items-center gap-1">
+            <Clock size={10} />
             {article.readingTime} min
           </span>
-          <span className="flex items-center gap-0.5">
-            <Eye size={8} />
+          <span className="flex items-center gap-1">
+            <Eye size={10} />
             {(article.views || 0).toLocaleString()} vues
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-divider">
+        <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-divider">
           <Link
             to={`/article/${article.id}`}
-            className="text-[10px] font-bold text-primary hover:gap-1 transition-all flex items-center gap-0.5"
+            className="text-xs font-bold text-primary hover:gap-1.5 transition-all flex items-center gap-1"
           >
-            Lire <span className="text-sm">→</span>
+            Lire <span className="text-base">→</span>
           </Link>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2.5 text-muted-foreground">
             <button className="hover:text-primary transition-colors">
-              <Share2 size={12} />
+              <Share2 size={14} />
             </button>
             <button className="hover:text-primary transition-colors">
-              <Facebook size={12} />
+              <Facebook size={14} />
             </button>
           </div>
         </div>

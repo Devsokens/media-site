@@ -65,7 +65,7 @@ export const CategoryRow = ({ category, articles }: CategoryRowProps) => {
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {articles.map((article, index) => (
-                        <div key={article.id} className="min-w-[170px] md:min-w-[200px] snap-start">
+                        <div key={article.id} className="min-w-[240px] md:min-w-[280px] snap-start">
                             <ArticleCard article={article} index={index} />
                         </div>
                     ))}
