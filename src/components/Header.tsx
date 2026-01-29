@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_ITEMS = [
   { name: 'Accueil', path: '/' },
-  { name: 'Monde', path: '/category/monde' },
-  { name: 'Politique', path: '/category/politique' },
-  { name: 'Économie', path: '/category/economie' },
-  { name: 'Technologie', path: '/category/technologie' },
-  { name: 'Culture', path: '/category/culture' },
-  { name: 'Sport', path: '/category/sport' },
+  { name: 'Académie', path: '/category/academie' },
+  { name: 'Vie Etudiante', path: '/category/vie-etudiante' },
+  { name: 'Opportunités', path: '/category/opportunités' },
+  { name: 'Culture & Arts', path: '/category/culture-arts' },
+  { name: 'Sports', path: '/category/sport' },
+  { name: 'Technologies', path: '/category/technologie' },
+  { name: 'Opinions/Tribunes', path: '/category/opinion-tribunes' },
 ];
 
 export const Header = () => {
@@ -72,7 +73,7 @@ export const Header = () => {
 
             <div className="flex-1 text-center hidden md:block">
               <h1 className="font-serif text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
-                Le Journal de l’Etudiant de l’UOB
+                Journal de l’Etudiant de l’Université Omar Bongo
               </h1>
             </div>
 
