@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+import { CATEGORIES } from '@/types/article';
+
+const slugify = (str: string) =>
+  str.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .trim();
+
+const CATEGORY_ITEMS = CATEGORIES.map(cat => ({
+  name: cat,
+  path: `/category/${slugify(cat)}`
+}));
 
 const NAV_ITEMS = [
   { name: 'Accueil', path: '/' },
-  { name: 'Académie', path: '/category/academie' },
-  { name: 'Vie Etudiante', path: '/category/vie-etudiante' },
-  { name: 'Opportunités', path: '/category/opportunités' },
-  { name: 'Culture & Arts', path: '/category/culture-arts' },
-  { name: 'Sports', path: '/category/sport' },
-  { name: 'Technologies', path: '/category/technologie' },
-  { name: 'Opinions/Tribunes', path: '/category/opinion-tribunes' },
+  ...CATEGORY_ITEMS,
+  { name: 'À propos', path: '/about' },
 ];
 
 export const Header = () => {
@@ -123,31 +133,42 @@ export const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 bottom-0 w-[260px] bg-white shadow-2xl flex flex-col pt-10"
+              className="absolute top-0 right-0 bottom-0 w-[280px] bg-background shadow-2xl flex flex-col pt-0 border-l border-divider"
             >
-              <div className="px-5 py-4 flex items-center justify-between border-b border-divider bg-white">
-                <span className="text-lg font-serif font-bold text-slate-900 uppercase tracking-tight">Menu</span>
+              <div className="px-6 py-6 flex items-center justify-between border-b border-divider bg-muted/30">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">
+                  Journal de l'Étudiant <br /> de l'Université Omar Bongo
+                </span>
                 <button
                   onClick={() => setIsMenuOpen(false)}
-                  className="p-1.5 hover:bg-slate-100 rounded-full text-slate-900 transition-colors"
+                  className="p-2 hover:bg-muted rounded-full text-foreground transition-colors border border-divider shadow-sm"
                 >
-                  <X size={24} />
+                  <X size={18} />
                 </button>
               </div>
-              <ul className="flex-1 overflow-y-auto py-4 bg-white">
+              <ul className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
                 {NAV_ITEMS.map((item, index) => (
                   <motion.li
                     key={item.name}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + index * 0.05 }}
+                    transition={{ delay: 0.05 * index }}
                   >
                     <Link
                       to={item.path}
-                      className="flex items-center justify-between px-6 py-4 text-lg font-serif font-bold text-slate-900 hover:bg-slate-50 transition-all border-b border-divider/40"
+                      className={`flex items-center justify-between px-4 py-3.5 rounded-xl transition-all group ${location.pathname === item.path
+                        ? 'bg-primary text-white shadow-md shadow-primary/20'
+                        : 'text-foreground hover:bg-muted font-medium'
+                        }`}
                     >
-                      {item.name}
-                      <span className="text-slate-300 text-xs">→</span>
+                      <span className="text-sm tracking-wide lowercase first-letter:uppercase">
+                        {item.name}
+                      </span>
+                      <ChevronRight
+                        size={14}
+                        className={`transition-transform group-hover:translate-x-1 ${location.pathname === item.path ? 'text-white/70' : 'text-muted-foreground'
+                          }`}
+                      />
                     </Link>
                   </motion.li>
                 ))}

@@ -1,5 +1,5 @@
-import { ReactNode, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
@@ -12,11 +12,14 @@ import {
   Megaphone,
   Users,
   ChevronLeft,
+  User as UserIcon,
 } from 'lucide-react';
 
-interface AdminLayoutProps {
-  children: ReactNode;
-}
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
+import { getCurrentProfile, UserProfile } from '@/lib/users';
+
+// No props needed for the root layout
 
 const navItems = [
   { icon: BarChart3, label: 'Tableau de bord', path: '/admin-jeuob' },
@@ -27,11 +30,67 @@ const navItems = [
   { icon: Settings, label: 'Paramètres', path: '/admin-jeuob/settings' },
 ];
 
-export const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+export const AdminLayout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    const saved = localStorage.getItem('admin_sidebar_open');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [userRoleHint, setUserRoleHint] = useState(() => localStorage.getItem('admin_role_hint'));
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getCurrentProfile();
+        setProfile(data);
+        if (data?.role) localStorage.setItem('admin_role_hint', data.role);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('admin_sidebar_open', JSON.stringify(isSidebarOpen));
+  }, [isSidebarOpen]);
+
+  const filteredNavItems = navItems.filter(item => {
+    // Determine current role (real profile or hint)
+    const effectiveRole = profile?.role || userRoleHint;
+
+    // Only admins can see user management and settings
+    if ((item.path === '/admin-jeuob/users' || item.path === '/admin-jeuob/settings')) {
+      // If we HAVE a role and it's not admin, hide.
+      // If we're still loading and have NO hint, hide (or keep if we want to be optimistic).
+      if (effectiveRole && effectiveRole !== 'admin') return false;
+    }
+    return true;
+  });
+
+  const handleLogout = async () => {
+    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
+      const { error } = await supabase.auth.signOut();
+      if (!error) {
+        toast({
+          title: "Déconnexion",
+          description: "Vous avez été déconnecté avec succès.",
+        });
+        navigate('/');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Un problème est survenu lors de la déconnexion.",
+        });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex overflow-x-hidden">
@@ -63,7 +122,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <li key={item.path}>
@@ -83,19 +142,44 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           </ul>
         </nav>
 
-        {/* Footer with Logout */}
-        <div className="p-4 border-t border-sidebar-border">
-          <button
-            onClick={() => {
-              if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                navigate('/');
-              }
-            }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-left"
-          >
-            <LogOut size={20} />
-            {isSidebarOpen && <span className="font-medium">Déconnexion</span>}
-          </button>
+        {/* User Info and Logout */}
+        <div className="mt-auto border-t border-sidebar-border">
+          {isLoadingProfile ? (
+            <div className="px-6 py-4 border-b border-sidebar-border bg-black/5 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-sidebar-accent/50 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-3 bg-sidebar-accent/50 rounded w-24" />
+                  <div className="h-2 bg-sidebar-accent/50 rounded w-16" />
+                </div>
+              </div>
+            </div>
+          ) : profile && isSidebarOpen && (
+            <div className="px-6 py-4 border-b border-sidebar-border bg-black/5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <UserIcon size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">
+                    {profile.fullName}
+                  </p>
+                  <p className="text-[10px] text-primary font-bold uppercase tracking-wider">
+                    {profile.role === 'admin' ? 'Administrateur' : profile.role === 'editor' ? 'Éditeur' : 'Observateur'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="p-4">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-left"
+            >
+              <LogOut size={20} />
+              {isSidebarOpen && <span className="font-medium">Déconnexion</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -144,7 +228,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
                 <nav className="flex-1 p-4 overflow-y-auto">
                   <ul className="space-y-2">
-                    {navItems.map((item) => {
+                    {filteredNavItems.map((item) => {
                       const isActive = location.pathname === item.path;
                       return (
                         <li key={item.path}>
@@ -165,10 +249,23 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
                   </ul>
                 </nav>
                 <div className="p-4 border-t border-sidebar-border">
+                  {profile && (
+                    <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-black/5 rounded-xl">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <UserIcon size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{profile.fullName}</p>
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-wider">
+                          {profile.role === 'admin' ? 'Administrateur' : profile.role === 'editor' ? 'Éditeur' : 'Observateur'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsMobileSidebarOpen(false);
-                      navigate('/');
+                      await handleLogout();
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                   >
@@ -181,9 +278,10 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
           )}
         </AnimatePresence>
 
+
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 bg-muted/30 min-h-screen">
-          {children}
+          <Outlet context={{ profile, isLoadingProfile }} />
         </main>
       </div>
     </div>

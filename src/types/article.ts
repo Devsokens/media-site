@@ -18,14 +18,14 @@ export interface Article {
 export type ArticleStatus = 'draft' | 'published';
 
 export const CATEGORIES = [
+  'Académie',
+  'Vie Étudiante',
+  'Opportunités',
   'Monde',
-  'Technologie',
-  'Culture',
-  'Économie',
-  'Sciences',
-  'Politique',
+  'Culture & Arts',
   'Sports',
-  'Opinion',
+  'Technologies',
+  'Opinions/Tribunes',
 ] as const;
 
 export type Category = typeof CATEGORIES[number];
