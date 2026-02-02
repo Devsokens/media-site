@@ -84,8 +84,8 @@ export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
     };
 
     return (
-        <div className="border border-input rounded-md overflow-hidden bg-background">
-            <div className="flex flex-wrap items-center gap-1 p-2 bg-muted/30 border-b border-input sticky top-0 z-10">
+        <div className="border border-input rounded-md overflow-hidden bg-background max-h-[700px] overflow-y-auto flex flex-col">
+            <div className="flex flex-wrap items-center gap-1 p-2 bg-muted/30 border-b border-input sticky top-0 z-20 shrink-0">
                 <input
                     type="file"
                     ref={fileInputRef}

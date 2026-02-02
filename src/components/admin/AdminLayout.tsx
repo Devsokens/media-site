@@ -93,7 +93,7 @@ export const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex overflow-x-hidden">
+    <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <aside
         className={`hidden md:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 fixed top-0 bottom-0 left-0 z-50 border-r border-sidebar-border ${isSidebarOpen ? 'w-64' : 'w-20'

@@ -103,59 +103,56 @@ const AdminArticles = () => {
                 </Link>
             </div>
 
-            {/* Filter and View Toggle */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div className="flex flex-wrap gap-2 order-2 md:order-1">
-                    {(['all', 'published', 'draft'] as const).map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                                }`}
-                        >
-                            {f === 'all' ? 'Tous' : f === 'published' ? 'Publiés' : 'Brouillons'}
-                        </button>
-                    ))}
+            {/* Filter and View Toggle Row */}
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex flex-wrap gap-2 order-2 md:order-1">
+                        {(['all', 'published', 'draft'] as const).map((f) => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === f
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                                    }`}
+                            >
+                                {f === 'all' ? 'Tous' : f === 'published' ? 'Publiés' : 'Brouillons'}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full md:w-auto order-1 md:order-2">
+                        <div className="relative flex-1 md:w-[250px]">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                            <Input
+                                type="text"
+                                placeholder="Rechercher..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-10 w-full bg-muted border-none"
+                            />
+                        </div>
+                        <div className="flex items-center bg-muted p-1 rounded-lg shrink-0">
+                            <button
+                                onClick={() => setViewMode('list')}
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <ListIcon size={18} />
+                            </button>
+                            <button
+                                onClick={() => setViewMode('card')}
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <LayoutGrid size={18} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto order-1 md:order-2">
-                    <div className="relative flex-1 md:w-[250px]">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input
-                            type="text"
-                            placeholder="Rechercher un article..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 h-10 w-full"
-                        />
-                    </div>
-                    <div className="flex items-center bg-muted p-1 rounded-lg shrink-0">
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                            title="Vue Liste"
-                        >
-                            <ListIcon size={18} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('card')}
-                            className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                            title="Vue Grille"
-                        >
-                            <LayoutGrid size={18} />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Date Filters */}
-            <div className="flex flex-wrap gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-divider">
-                <div className="flex flex-col gap-1.5 min-w-[120px]">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Année</label>
+                {/* Advanced Filters Integrated */}
+                <div className="flex flex-wrap items-center gap-3">
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="bg-background h-9 text-sm">
+                        <SelectTrigger className="w-[120px] bg-muted border-none h-9 text-xs">
                             <SelectValue placeholder="Année" />
                         </SelectTrigger>
                         <SelectContent>
@@ -165,50 +162,46 @@ const AdminArticles = () => {
                             ))}
                         </SelectContent>
                     </Select>
-                </div>
 
-                <div className="flex flex-col gap-1.5 min-w-[140px]">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Semestre</label>
                     <Select value={selectedSemestre} onValueChange={setSelectedSemestre}>
-                        <SelectTrigger className="bg-background h-9 text-sm">
+                        <SelectTrigger className="w-[140px] bg-muted border-none h-9 text-xs">
                             <SelectValue placeholder="Semestre" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tous les semestres</SelectItem>
-                            <SelectItem value="1">1er Semestre (Jan-Jun)</SelectItem>
-                            <SelectItem value="2">2ème Semestre (Jul-Dec)</SelectItem>
+                            <SelectItem value="1">1er Semestre</SelectItem>
+                            <SelectItem value="2">2ème Semestre</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
 
-                <div className="flex flex-col gap-1.5 min-w-[140px]">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Trimestre</label>
                     <Select value={selectedTrimestre} onValueChange={setSelectedTrimestre}>
-                        <SelectTrigger className="bg-background h-9 text-sm">
+                        <SelectTrigger className="w-[140px] bg-muted border-none h-9 text-xs">
                             <SelectValue placeholder="Trimestre" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tous les trimestres</SelectItem>
-                            <SelectItem value="1">1er Trimestre (T1)</SelectItem>
-                            <SelectItem value="2">2ème Trimestre (T2)</SelectItem>
-                            <SelectItem value="3">3ème Trimestre (T3)</SelectItem>
-                            <SelectItem value="4">4ème Trimestre (T4)</SelectItem>
+                            <SelectItem value="1">1er Trimestre</SelectItem>
+                            <SelectItem value="2">2ème Trimestre</SelectItem>
+                            <SelectItem value="3">3ème Trimestre</SelectItem>
+                            <SelectItem value="4">4ème Trimestre</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
 
-                <button
-                    onClick={() => {
-                        setSelectedYear('all');
-                        setSelectedSemestre('all');
-                        setSelectedTrimestre('all');
-                        setSearchQuery('');
-                        setFilter('all');
-                    }}
-                    className="self-end h-9 px-4 text-xs font-medium text-muted-foreground hover:text-primary transition-colors underline decoration-dotted"
-                >
-                    Réinitialiser
-                </button>
+                    {(selectedYear !== 'all' || selectedSemestre !== 'all' || selectedTrimestre !== 'all' || searchQuery !== '' || filter !== 'all') && (
+                        <button
+                            onClick={() => {
+                                setSelectedYear('all');
+                                setSelectedSemestre('all');
+                                setSelectedTrimestre('all');
+                                setSearchQuery('');
+                                setFilter('all');
+                            }}
+                            className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors underline decoration-dotted ml-2"
+                        >
+                            Réinitialiser
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Articles Content */}
