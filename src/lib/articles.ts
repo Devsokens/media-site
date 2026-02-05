@@ -19,10 +19,13 @@ const mapArticle = (dbArticle: any): Article => ({
   updatedAt: dbArticle.updated_at,
 });
 
+// Lean selection for list views to improve performance (excludes content)
+const LEAN_SELECT = 'id, title, summary, category, cover_image, author, reading_time, views, published_at, is_published, is_featured, created_at, updated_at';
+
 export const getArticles = async (): Promise<Article[]> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select(LEAN_SELECT)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -36,7 +39,7 @@ export const getArticles = async (): Promise<Article[]> => {
 export const getPublishedArticles = async (): Promise<Article[]> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select(LEAN_SELECT)
     .eq('is_published', true)
     .order('published_at', { ascending: false });
 
@@ -51,7 +54,7 @@ export const getPublishedArticles = async (): Promise<Article[]> => {
 export const getFeaturedArticle = async (): Promise<Article | undefined> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select(LEAN_SELECT)
     .eq('is_published', true)
     .eq('is_featured', true)
     .order('published_at', { ascending: false })
@@ -69,7 +72,7 @@ export const getFeaturedArticle = async (): Promise<Article | undefined> => {
 export const getArticleById = async (id: string): Promise<Article | undefined> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('*') // Full content needed for single view
     .eq('id', id)
     .single();
 
@@ -84,7 +87,7 @@ export const getArticleById = async (id: string): Promise<Article | undefined> =
 export const getArticlesByCategory = async (category: string): Promise<Article[]> => {
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select(LEAN_SELECT)
     .eq('is_published', true)
     .ilike('category', category)
     .order('published_at', { ascending: false });

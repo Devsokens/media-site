@@ -13,6 +13,7 @@ import {
     LayoutGrid,
     List as ListIcon,
     Search,
+    Loader2,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { getArticles, deleteArticle, formatDate } from '@/lib/articles';
@@ -34,6 +35,7 @@ import {
 
 const AdminArticles = () => {
     const [articles, setArticles] = useState<Article[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
     const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
     const [searchQuery, setSearchQuery] = useState('');
@@ -42,8 +44,13 @@ const AdminArticles = () => {
     const [selectedSemestre, setSelectedSemestre] = useState<string>('all');
 
     const fetchArticles = async () => {
-        const data = await getArticles();
-        setArticles(data);
+        setIsLoading(true);
+        try {
+            const data = await getArticles();
+            setArticles(data);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -89,7 +96,10 @@ const AdminArticles = () => {
             {/* Header */}
             <div className="flex flex-row items-center gap-3 mb-8">
                 <div className="flex-1 min-w-0">
-                    <h1 className="headline-lg text-headline text-lg md:text-2xl">Articles</h1>
+                    <h1 className="headline-lg text-headline text-lg md:text-2xl flex items-center gap-2">
+                        Articles
+                        {isLoading && <Loader2 className="w-5 h-5 animate-spin text-primary/50" />}
+                    </h1>
                     <p className="text-muted-foreground mt-1 text-xs md:text-sm hidden md:block">
                         Créez, modifiez et programmez vos contenus
                     </p>
@@ -408,12 +418,16 @@ const AdminArticles = () => {
                 </div>
             )}
 
-            {filteredArticles.length === 0 && (
+            {!isLoading && filteredArticles.length === 0 && (
                 <div className="text-center py-24 bg-muted/20 rounded-2xl border-2 border-dashed border-border mt-6">
                     <FileText className="mx-auto text-primary/20 mb-4" size={64} />
-                    <p className="text-headline font-bold text-xl mb-1">Aucun article trouvé</p>
+                    <p className="text-headline font-bold text-xl mb-1">
+                        {searchQuery || selectedYear !== 'all' ? 'Aucun résultat trouvé' : 'Aucun article trouvé'}
+                    </p>
                     <p className="text-muted-foreground max-w-xs mx-auto text-sm">
-                        Commencez à créer du contenu passionnant pour votre audience dès aujourd'hui !
+                        {searchQuery || selectedYear !== 'all'
+                            ? 'Essayez de modifier vos filtres ou votre recherche.'
+                            : 'Commencez à créer du contenu passionnant pour votre audience dès aujourd\'hui !'}
                     </p>
                 </div>
             )}

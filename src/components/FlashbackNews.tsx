@@ -90,7 +90,7 @@ export const FlashbackNews = ({ articles = [], flashInfo = [] }: FlashbackNewsPr
                                         {currentItem.title}
                                     </h3>
                                     <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 md:line-clamp-3">
-                                        {currentItem.content}
+                                        {currentItem.content.replace(/<[^>]*>/g, '')}
                                     </p>
                                 </div>
                             )}
@@ -156,9 +156,15 @@ export const FlashbackNews = ({ articles = [], flashInfo = [] }: FlashbackNewsPr
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex-1 overflow-y-auto p-8 py-10">
-                        <p className="text-base md:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium">
-                            {selectedFlash?.content}
-                        </p>
+                        {selectedFlash?.fullData?.coverImage && (
+                            <div className="aspect-video w-full rounded-2xl overflow-hidden mb-8 shadow-md">
+                                <img src={selectedFlash.fullData.coverImage} alt={selectedFlash.title} className="w-full h-full object-cover" />
+                            </div>
+                        )}
+                        <div
+                            className="text-base md:text-lg text-muted-foreground leading-relaxed font-medium prose prose-sm md:prose-base max-w-none"
+                            dangerouslySetInnerHTML={{ __html: selectedFlash?.content }}
+                        />
                     </div>
                     <div className="p-8 border-t border-divider bg-muted/5 flex flex-col gap-4">
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground uppercase tracking-widest font-bold">

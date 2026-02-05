@@ -19,8 +19,9 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { getArticleById, saveArticle, updateArticle } from '@/lib/articles';
 import { ArticleFormData } from '@/types/article';
-import { ArrowLeft, Save, Upload, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
+import { uploadFile } from '@/lib/storage';
 
 import { CATEGORIES } from '@/types/article';
 
@@ -29,6 +30,7 @@ const ArticleEditor = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const { profile } = useOutletContext<{ profile: UserProfile | null }>();
 
     const { register, control, handleSubmit, setValue, watch, reset, formState: { errors, isSubmitting } } = useForm<ArticleFormData>({
@@ -68,15 +70,26 @@ const ArticleEditor = () => {
         fetchArticle();
     }, [id, reset, navigate, toast]);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setCoverPreview(reader.result as string);
-                setValue('coverImage', reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            try {
+                const url = await uploadFile(file, 'jeuob', 'articles');
+                if (url) {
+                    setCoverPreview(url);
+                    setValue('coverImage', url);
+                }
+            } catch (error) {
+                console.error("Upload error:", error);
+                toast({
+                    title: "Erreur d'upload",
+                    description: "Impossible d'uploader l'image",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsUploading(false);
+            }
         }
     };
 
@@ -151,9 +164,15 @@ const ArticleEditor = () => {
                                 </>
                             ) : (
                                 <div className="text-center p-4">
-                                    <ImageIcon className="mx-auto text-muted-foreground mb-2" size={32} />
-                                    <p className="text-sm text-muted-foreground font-medium">Cliquez pour ajouter une image</p>
-                                    <p className="text-xs text-muted-foreground mt-1 text-muted-foreground/60">PNG, JPG jusqu'à 5MB</p>
+                                    {isUploading ? (
+                                        <Loader2 className="mx-auto text-primary animate-spin mb-2" size={32} />
+                                    ) : (
+                                        <ImageIcon className="mx-auto text-muted-foreground mb-2" size={32} />
+                                    )}
+                                    <p className="text-sm text-muted-foreground font-medium">
+                                        {isUploading ? "Chargement de l'image..." : "Cliquez pour ajouter une image"}
+                                    </p>
+                                    {!isUploading && <p className="text-xs text-muted-foreground mt-1 text-muted-foreground/60">PNG, JPG jusqu'à 5MB</p>}
                                 </div>
                             )}
                             <input
@@ -161,7 +180,13 @@ const ArticleEditor = () => {
                                 accept="image/*"
                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                 onChange={handleImageChange}
+                                disabled={isUploading}
                             />
+                            {isUploading && coverPreview && (
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <Loader2 className="text-white animate-spin" size={32} />
+                                </div>
+                            )}
                         </div>
                         <input type="hidden" {...register('coverImage', { required: 'L\'image est requise' })} />
                         {errors.coverImage && <p className="text-destructive text-sm">{errors.coverImage.message}</p>}
@@ -198,6 +223,7 @@ const ArticleEditor = () => {
                                 <RichTextEditor
                                     value={field.value}
                                     onChange={field.onChange}
+                                    folder="articles"
                                 />
                             )}
                         />
@@ -252,8 +278,8 @@ const ArticleEditor = () => {
                             <Button
                                 type="button"
                                 variant={isPublished ? "outline" : "default"}
-                                className="w-full gap-2"
-                                disabled={isSubmitting}
+                                className="w-full gap-2 text-white"
+                                disabled={isSubmitting || isUploading}
                                 onClick={() => {
                                     if (!isPublished) {
                                         setValue('isPublished', true);
@@ -264,20 +290,20 @@ const ArticleEditor = () => {
                                     handleSubmit(onSubmit)();
                                 }}
                             >
-                                <ImageIcon size={18} />
+                                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : (isPublished ? <ImageIcon size={18} /> : <Upload size={18} />)}
                                 {isPublished ? 'Mettre à jour' : 'Publier l\'article'}
                             </Button>
                             <Button
                                 type="button"
                                 variant="ghost"
                                 className="w-full gap-2"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isUploading}
                                 onClick={() => {
                                     setValue('isPublished', false);
                                     handleSubmit(onSubmit)();
                                 }}
                             >
-                                <Save size={18} />
+                                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                                 Enregistrer en brouillon
                             </Button>
                         </div>

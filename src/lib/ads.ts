@@ -22,10 +22,12 @@ const mapAd = (dbAd: any): Ad => ({
     createdAt: dbAd.created_at,
 });
 
+const AD_SELECT = 'id, name, image_url, link, placement, clicks, is_active, created_at';
+
 export const getAds = async (): Promise<Ad[]> => {
     const { data, error } = await supabase
         .from('ads')
-        .select('*')
+        .select(AD_SELECT)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -39,7 +41,7 @@ export const getAds = async (): Promise<Ad[]> => {
 export const getActiveAdsByPlacement = async (placement: Ad['placement']): Promise<Ad[]> => {
     const { data, error } = await supabase
         .from('ads')
-        .select('*')
+        .select(AD_SELECT)
         .eq('is_active', true)
         .eq('placement', placement)
         .order('created_at', { ascending: false });

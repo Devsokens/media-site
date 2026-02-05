@@ -125,6 +125,14 @@
     font-family: 'Playfair Display', Georgia, serif;
     @apply text-headline;
   }
+
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+
+  .font-libre {
+    font-family: 'Libre Baskerville', serif;
+  }
 }
 
 @layer components {

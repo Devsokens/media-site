@@ -2,17 +2,20 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
-import { Bold, Italic, List, Link as LinkIcon, Heading as HeadingIcon, Quote, Code, ListOrdered, Undo, Redo, Image as ImageIcon } from 'lucide-react';
+import { Bold, Italic, List, Link as LinkIcon, Heading as HeadingIcon, Quote, Code, ListOrdered, Undo, Redo, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { uploadFile } from '@/lib/storage';
 
 interface RichTextEditorProps {
     value: string;
     onChange: (value: string) => void;
+    folder?: string;
 }
 
-export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
+export const RichTextEditor = ({ value, onChange, folder = 'media' }: RichTextEditorProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const editor = useEditor({
         extensions: [
@@ -53,15 +56,20 @@ export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
         fileInputRef.current?.click();
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const url = reader.result as string;
-                editor.chain().focus().setImage({ src: url }).run();
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            try {
+                const url = await uploadFile(file, 'jeuob', folder);
+                if (url) {
+                    editor.chain().focus().setImage({ src: url }).run();
+                }
+            } catch (error) {
+                console.error("Editor upload error:", error);
+            } finally {
+                setIsUploading(false);
+            }
         }
         // Reset input so same file can be selected again if needed
         e.target.value = '';
@@ -174,8 +182,9 @@ export const RichTextEditor = ({ value, onChange }: RichTextEditorProps) => {
                     size="sm"
                     onClick={addImage}
                     title="Image"
+                    disabled={isUploading}
                 >
-                    <ImageIcon size={16} />
+                    {isUploading ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />}
                 </Button>
                 <Button
                     type="button"

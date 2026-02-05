@@ -18,19 +18,27 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Loader2 } from 'lucide-react';
 import { getAds, saveAd, updateAd, deleteAd, Ad } from '@/lib/ads';
+import { uploadFile } from '@/lib/storage';
 
 
 
 const AdminAds = () => {
     const [ads, setAds] = useState<Ad[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAd, setEditingAd] = useState<Ad | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const fetchAds = async () => {
-        const data = await getAds();
-        setAds(data);
+        setIsLoading(true);
+        try {
+            const data = await getAds();
+            setAds(data);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -48,26 +56,30 @@ const AdminAds = () => {
             setEditingAd(ad);
             setName(ad.name);
             setLink(ad.link);
-            setPlacement(ad.placement);
             setImagePreview(ad.imageUrl);
         } else {
             setEditingAd(null);
             setName('');
             setLink('');
-            setPlacement('sidebar');
             setImagePreview(null);
         }
         setIsModalOpen(true);
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            try {
+                const url = await uploadFile(file, 'jeuob', 'pub');
+                if (url) {
+                    setImagePreview(url);
+                }
+            } catch (error) {
+                console.error("Upload error:", error);
+            } finally {
+                setIsUploading(false);
+            }
         }
     };
 
@@ -76,12 +88,12 @@ const AdminAds = () => {
         if (!imagePreview) return;
 
         if (editingAd) {
-            await updateAd(editingAd.id, { name, link, placement, imageUrl: imagePreview });
+            await updateAd(editingAd.id, { name, link, placement: 'sidebar', imageUrl: imagePreview });
         } else {
             await saveAd({
                 name,
                 link,
-                placement,
+                placement: 'sidebar',
                 imageUrl: imagePreview,
                 isActive: true,
             });
@@ -108,6 +120,7 @@ const AdminAds = () => {
                 <div>
                     <h1 className="headline-lg text-headline flex items-center gap-2">
                         <Megaphone className="text-primary" /> Campagnes Publicitaires
+                        {isLoading && <Loader2 className="w-5 h-5 animate-spin text-primary/50" />}
                     </h1>
                     <p className="text-muted-foreground mt-1">Gérez vos bannières et partenariats</p>
                 </div>
@@ -137,8 +150,8 @@ const AdminAds = () => {
                         <div className="flex justify-between items-start mb-2">
                             <div>
                                 <h3 className="font-bold text-headline line-clamp-1">{ad.name}</h3>
-                                <p className="text-xs text-muted-foreground capitalize flex items-center gap-1 mt-1">
-                                    Placement: <span className="px-1.5 py-0.5 bg-muted rounded font-medium">{ad.placement}</span>
+                                <p className="text-[10px] text-muted-foreground mt-1 bg-muted px-2 py-0.5 rounded-full w-fit">
+                                    Barre latérale
                                 </p>
                             </div>
                             <DropdownMenu>
@@ -165,11 +178,22 @@ const AdminAds = () => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
-
-
                     </motion.div>
                 ))}
             </div>
+
+            {!isLoading && ads.length === 0 && (
+                <div className="text-center py-24 bg-muted/20 rounded-2xl border-2 border-dashed border-border mt-6">
+                    <Megaphone className="mx-auto text-primary/20 mb-4" size={64} />
+                    <p className="text-headline font-bold text-xl mb-1">Aucune publicité</p>
+                    <p className="text-muted-foreground max-w-xs mx-auto text-sm">
+                        Ajoutez votre première campagne publicitaire pour l'afficher sur le site.
+                    </p>
+                    <Button onClick={() => openModal()} variant="outline" className="mt-6 gap-2">
+                        <Plus size={16} /> Créer une pub
+                    </Button>
+                </div>
+            )}
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -205,8 +229,14 @@ const AdminAds = () => {
                                     </>
                                 ) : (
                                     <div className="text-center p-4">
-                                        <ImageIcon className="mx-auto text-muted-foreground mb-2" size={32} />
-                                        <p className="text-sm text-muted-foreground font-medium">Ajouter une image</p>
+                                        {isUploading ? (
+                                            <Loader2 className="mx-auto text-primary animate-spin mb-2" size={32} />
+                                        ) : (
+                                            <ImageIcon className="mx-auto text-muted-foreground mb-2" size={32} />
+                                        )}
+                                        <p className="text-sm text-muted-foreground font-medium">
+                                            {isUploading ? "Upload en cours..." : "Ajouter une image"}
+                                        </p>
                                     </div>
                                 )}
                                 <input
@@ -215,7 +245,13 @@ const AdminAds = () => {
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                     onChange={handleImageChange}
                                     required={!imagePreview}
+                                    disabled={isUploading}
                                 />
+                                {isUploading && imagePreview && (
+                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                        <Loader2 className="text-white animate-spin" size={32} />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -230,21 +266,13 @@ const AdminAds = () => {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label>Emplacement</Label>
-                            <Input
-                                value="Barre latérale"
-                                disabled
-                                className="bg-muted cursor-not-allowed"
-                            />
-                            <input type="hidden" value="sidebar" />
-                        </div>
-
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                                 Annuler
                             </Button>
-                            <Button type="submit">Enregistrer</Button>
+                            <Button type="submit" disabled={isUploading}>
+                                {isUploading ? 'Chargement...' : 'Enregistrer'}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

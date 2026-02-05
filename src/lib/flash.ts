@@ -4,6 +4,7 @@ export interface FlashInfo {
     id: string;
     title: string;
     content: string;
+    coverImage?: string;
     priority: 'high' | 'normal';
     isActive: boolean;
     createdAt?: string;
@@ -13,15 +14,18 @@ const mapFlash = (dbFlash: any): FlashInfo => ({
     id: dbFlash.id,
     title: dbFlash.title,
     content: dbFlash.content,
+    coverImage: dbFlash.cover_image,
     priority: dbFlash.priority,
     isActive: dbFlash.is_active,
     createdAt: dbFlash.created_at,
 });
 
+const FLASH_SELECT = 'id, title, content, cover_image, priority, is_active, created_at';
+
 export const getFlashInfo = async (): Promise<FlashInfo[]> => {
     const { data, error } = await supabase
         .from('flash_info')
-        .select('*')
+        .select(FLASH_SELECT)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -35,7 +39,7 @@ export const getFlashInfo = async (): Promise<FlashInfo[]> => {
 export const getActiveFlashInfo = async (): Promise<FlashInfo[]> => {
     const { data, error } = await supabase
         .from('flash_info')
-        .select('*')
+        .select(FLASH_SELECT)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -51,6 +55,7 @@ export const saveFlashInfo = async (flash: Omit<FlashInfo, 'id'>): Promise<Flash
     const dbFlash = {
         title: flash.title,
         content: flash.content,
+        cover_image: flash.coverImage,
         priority: flash.priority,
         is_active: flash.isActive,
     };
@@ -73,6 +78,7 @@ export const updateFlashInfo = async (id: string, updates: Partial<FlashInfo>): 
     const dbUpdates: any = {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.content !== undefined) dbUpdates.content = updates.content;
+    if (updates.coverImage !== undefined) dbUpdates.cover_image = updates.coverImage;
     if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
     if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
 

@@ -67,33 +67,45 @@ export const Header = () => {
       >
         <div className="container">
           {/* Logo row */}
-          <div className="flex items-center justify-between gap-4 py-2">
-            <Link to="/" className="shrink-0 flex items-center gap-3">
-              <img
-                src="/assets/JEUOB_LOGO-removebg-preview.png"
-                alt="JEUOB Logo"
-                className="h-12 md:h-20 w-auto object-contain transition-all"
-              />
-              <div className="md:hidden">
-                <h1 className="font-serif text-xl font-bold text-primary leading-tight">
-                  JEUOB
-                </h1>
-              </div>
-            </Link>
-
-            <div className="flex-1 text-center hidden md:block">
-              <h1 className="font-serif text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
-                Journal de l’Etudiant de l’Université Omar Bongo
-              </h1>
+          <div className="flex items-center justify-between gap-4 py-2 relative">
+            {/* Desktop Left / Mobile Left: JEUOB Logo */}
+            <div className="flex items-center gap-4 w-1/4 md:w-auto">
+              <Link to="/" className="shrink-0 flex items-center gap-3">
+                <img
+                  src="/assets/JEUOB_LOGO-removebg-preview.png"
+                  alt="JEUOB Logo"
+                  className="h-10 md:h-20 w-auto object-contain transition-all"
+                />
+              </Link>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Desktop Center: Full Title / Mobile Center: JEUOB */}
+            <div className="flex-1 text-center">
+              {/* Desktop Title */}
+              <h1 className="hidden md:block font-libre text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
+                Journal de l’Etudiant de l’Université Omar Bongo
+              </h1>
+              {/* Mobile Centered JEUOB */}
+              <Link to="/" className="md:hidden inline-block transform -translate-x-1/2 left-1/2 absolute top-1/2 -translate-y-1/2">
+                <h1 className="font-cinzel text-2xl font-bold text-primary tracking-wider leading-tight">
+                  JEUOB
+                </h1>
+              </Link>
+            </div>
+
+            {/* Desktop Right / Mobile Right: UOB Logo & Menu */}
+            <div className="flex items-center justify-end gap-2 w-1/4 md:w-auto">
+              <img
+                src="/assets/logo-uob-removebg-preview.png"
+                alt="UOB Logo"
+                className="h-10 md:h-16 w-auto object-contain transition-all"
+              />
               <button
                 className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors text-primary"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Ouvrir le menu"
               >
-                {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
           </div>
