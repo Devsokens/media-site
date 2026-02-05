@@ -41,6 +41,7 @@ const AdminUsers = () => {
     // Form
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [role, setRole] = useState<'admin' | 'editor' | 'viewer'>('viewer');
 
     const fetchProfiles = async () => {
@@ -79,6 +80,7 @@ const AdminUsers = () => {
             setEditingUser(null);
             setName('');
             setEmail('');
+            setPassword('');
             setRole('viewer');
         }
         setIsModalOpen(true);
@@ -98,12 +100,19 @@ const AdminUsers = () => {
                     });
                 }
             } else {
-                // Envoi d'une invitation via OTP (Magic Link)
-                const { error } = await supabase.auth.signInWithOtp({
+                // Création directe de compte avec mot de passe
+                // On utilise un client temporaire sans persistance pour ne pas déconnecter l'admin
+                const { createClient } = await import('@supabase/supabase-js');
+                const tempSupabase = createClient(
+                    import.meta.env.VITE_SUPABASE_URL,
+                    import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    { auth: { persistSession: false } }
+                );
+
+                const { data, error } = await tempSupabase.auth.signUp({
                     email,
+                    password,
                     options: {
-                        emailRedirectTo: window.location.origin + '/admin-jeuob',
-                        //@ts-ignore
                         data: {
                             full_name: name,
                             role: role
@@ -114,8 +123,8 @@ const AdminUsers = () => {
                 if (error) throw error;
 
                 toast({
-                    title: "Invitation envoyée",
-                    description: `Un e-mail de confirmation a été envoyé à ${email}.`,
+                    title: "Compte créé",
+                    description: `Le compte pour ${name} a été créé avec succès.`,
                 });
             }
             fetchProfiles();
@@ -161,7 +170,7 @@ const AdminUsers = () => {
                     <p className="text-muted-foreground mt-1">Gérez les membres de l'équipe</p>
                 </div>
                 <Button onClick={() => openModal()} className="gap-2 h-8 text-xs px-3 md:h-10 md:text-sm md:px-4">
-                    <UserPlus size={16} className="md:w-[18px] md:h-[18px]" /> Inviter un membre
+                    <UserPlus size={16} className="md:w-[18px] md:h-[18px]" /> Créer un compte
                 </Button>
             </div>
 
@@ -311,11 +320,11 @@ const AdminUsers = () => {
             </div>
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="w-[95vw] sm:max-w-[425px] max-h-[95vh] overflow-y-auto p-4 sm:p-6 text-headline">
                     <DialogHeader>
-                        <DialogTitle>{editingUser ? 'Modifier l\'utilisateur' : 'Inviter un membre'}</DialogTitle>
+                        <DialogTitle>{editingUser ? 'Modifier l\'utilisateur' : 'Créer un nouveau compte'}</DialogTitle>
                         <DialogDescription>
-                            Configurez les accès de ce membre de l'équipe.
+                            {editingUser ? 'Modifiez le rôle de ce membre.' : 'Saisissez les informations pour créer un compte directement.'}
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -341,6 +350,23 @@ const AdminUsers = () => {
                                 required
                             />
                         </div>
+                        {!editingUser && (
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Mot de passe initial</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                />
+                                <p className="text-[10px] text-muted-foreground">
+                                    L'utilisateur pourra modifier ce mot de passe plus tard.
+                                </p>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="role">Rôle</Label>
                             <Select value={role} onValueChange={(val: any) => setRole(val)}>

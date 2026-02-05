@@ -110,7 +110,7 @@ const AdminFlash = () => {
 
     return (
         <div className="max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
                     <h1 className="headline-lg text-headline flex items-center gap-2">
                         <Zap className="text-primary fill-primary" /> Flash Info
@@ -118,8 +118,8 @@ const AdminFlash = () => {
                     </h1>
                     <p className="text-muted-foreground mt-1">Gérez les alertes en temps réel</p>
                 </div>
-                <Button onClick={() => openModal()} className="gap-2 h-8 text-xs px-3 md:h-10 md:text-sm md:px-4 text-white">
-                    <Plus size={16} className="md:w-[18px] md:h-[18px]" /> Nouveau Flash
+                <Button onClick={() => openModal()} className="w-full sm:w-auto gap-2 h-10 text-sm px-4 text-white">
+                    <Plus size={16} /> Nouveau Flash
                 </Button>
             </div>
 
@@ -130,21 +130,21 @@ const AdminFlash = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
-                        className={`p-6 rounded-xl border relative overflow-hidden group hover:shadow-lg transition-shadow bg-card flex flex-col ${flash.priority === 'high' ? 'border-l-4 border-l-destructive' : 'border-l-4 border-l-primary'}`}
+                        className={`p-6 rounded-xl border relative overflow-hidden group hover:shadow-lg transition-shadow bg-card flex flex-col h-[450px] ${flash.priority === 'high' ? 'border-l-4 border-l-destructive' : 'border-l-4 border-l-primary'}`}
                     >
                         {flash.coverImage && (
-                            <div className="aspect-video w-full rounded-lg overflow-hidden mb-4">
+                            <div className="aspect-video w-full rounded-lg overflow-hidden mb-4 shrink-0">
                                 <img src={flash.coverImage} alt={flash.title} className="w-full h-full object-cover" />
                             </div>
                         )}
-                        <div className="flex justify-between items-start mb-4">
+                        <div className="flex justify-between items-start mb-4 shrink-0">
                             <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${flash.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                 {flash.isActive ? 'Actif' : 'Archivé'}
                             </span>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="p-2 hover:bg-muted rounded-full transition-colors opacity-0 group-hover:opacity-100">
-                                        <MoreHorizontal size={16} />
+                                    <button className="p-2.5 hover:bg-muted rounded-full transition-colors md:opacity-0 md:group-hover:opacity-100 bg-muted/20 md:bg-transparent">
+                                        <MoreHorizontal size={18} />
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -161,10 +161,13 @@ const AdminFlash = () => {
                             </DropdownMenu>
                         </div>
 
-                        <h3 className="text-lg font-bold text-headline mb-2">{flash.title}</h3>
-                        <div className="text-muted-foreground text-sm mb-4 prose prose-sm max-w-none prose-p:leading-relaxed" dangerouslySetInnerHTML={{ __html: flash.content }} />
+                        <h3 className="text-lg font-bold text-headline mb-2 line-clamp-2 shrink-0">{flash.title}</h3>
+                        <div
+                            className="text-muted-foreground text-sm mb-4 prose prose-sm max-w-none prose-p:leading-relaxed overflow-y-auto pr-2 custom-scrollbar flex-1"
+                            dangerouslySetInnerHTML={{ __html: flash.content }}
+                        />
 
-                        <div className="flex items-center text-xs text-muted-foreground mt-auto pt-4 border-t border-border">
+                        <div className="flex items-center text-xs text-muted-foreground mt-auto pt-4 border-t border-border shrink-0">
                             <Calendar size={12} className="mr-1" />
                             {flash.createdAt && new Date(flash.createdAt).toLocaleDateString()}
                         </div>
@@ -186,100 +189,104 @@ const AdminFlash = () => {
             )}
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] sm:max-w-[700px] max-h-[95vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 text-headline">
                     <DialogHeader>
                         <DialogTitle>{editingFlash ? 'Modifier Flash Info' : 'Nouveau Flash Info'}</DialogTitle>
                         <DialogDescription>
                             Créez une alerte qui apparaîtra sur la page d'accueil avec du texte riche et une image.
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-6 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="title">Titre</Label>
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <Label className="text-sm sm:text-base font-semibold">Image de couverture</Label>
+                            <div className="relative aspect-video sm:aspect-[3/1] w-full rounded-xl overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors bg-muted flex flex-col items-center justify-center cursor-pointer group shadow-sm">
+                                {coverImage ? (
+                                    <>
+                                        <img src={coverImage} alt="Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <p className="text-white text-xs sm:text-sm font-medium flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm md:bg-transparent md:p-0 md:backdrop-none">
+                                                <ImageIcon size={16} /> Changer l'image
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center p-2 sm:p-4">
+                                        {isUploading ? (
+                                            <Loader2 className="mx-auto text-primary animate-spin mb-1 sm:mb-2" size={24} />
+                                        ) : (
+                                            <ImageIcon className="mx-auto text-muted-foreground mb-1 sm:mb-2" size={24} />
+                                        )}
+                                        <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">
+                                            {isUploading ? "Chargement..." : "Uploader une image"}
+                                        </p>
+                                        {!isUploading && <p className="text-[10px] text-muted-foreground/60 mt-0.5 hidden sm:block">PNG, JPG jusqu'à 5MB</p>}
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={isUploading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1 sm:space-y-2">
+                            <Label htmlFor="title" className="text-sm sm:text-base font-semibold">Titre</Label>
                             <Input
                                 id="title"
                                 placeholder="Ex: Alerte Météo"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
+                                className="h-9 sm:h-10 text-sm"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Image de couverture</Label>
-                            <div className="flex items-center gap-4">
-                                {coverImage && (
-                                    <div className="h-20 w-20 rounded-lg overflow-hidden border">
-                                        <img src={coverImage} alt="Preview" className="h-full w-full object-cover" />
-                                    </div>
-                                )}
-                                <div className="flex-1">
-                                    <Label
-                                        htmlFor="cover-upload"
-                                        className="flex flex-col items-center justify-center h-20 w-full border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                                    >
-                                        {isUploading ? (
-                                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                        ) : (
-                                            <>
-                                                <ImageIcon className="h-6 w-6 text-muted-foreground mb-1" />
-                                                <span className="text-xs text-muted-foreground">Cliquez pour uploader</span>
-                                            </>
-                                        )}
-                                        <input
-                                            id="cover-upload"
-                                            type="file"
-                                            className="hidden"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            disabled={isUploading}
-                                        />
-                                    </Label>
-                                </div>
+                            <Label className="text-sm sm:text-base font-semibold">Contenu (Texte riche)</Label>
+                            <div className="border rounded-lg overflow-hidden shadow-sm">
+                                <RichTextEditor
+                                    value={content}
+                                    onChange={setContent}
+                                    folder="flash"
+                                />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Contenu (Texte riche)</Label>
-                            <RichTextEditor
-                                value={content}
-                                onChange={setContent}
-                                folder="flash"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Priorité</Label>
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
+                            <Label className="text-base font-semibold">Priorité</Label>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                                     <input
                                         type="radio"
                                         name="priority"
                                         value="normal"
                                         checked={priority === 'normal'}
                                         onChange={() => setPriority('normal')}
-                                        className="accent-primary"
+                                        className="accent-primary h-4 w-4"
                                     />
                                     <span className="text-sm">Normale</span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
+                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                                     <input
                                         type="radio"
                                         name="priority"
                                         value="high"
                                         checked={priority === 'high'}
                                         onChange={() => setPriority('high')}
-                                        className="accent-destructive"
+                                        className="accent-destructive h-4 w-4"
                                     />
                                     <span className="text-sm font-bold text-destructive">Urgente</span>
                                 </label>
                             </div>
                         </div>
-                        <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
-                            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t flex flex-col sm:flex-row gap-2 mt-6">
+                            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">
                                 Annuler
                             </Button>
-                            <Button type="submit" disabled={isUploading} className="text-white">
+                            <Button type="submit" disabled={isUploading} className="w-full sm:w-auto text-white order-1 sm:order-2">
                                 {isUploading ? 'Upload en cours...' : 'Enregistrer'}
                             </Button>
                         </DialogFooter>

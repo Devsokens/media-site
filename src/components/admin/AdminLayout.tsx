@@ -13,7 +13,9 @@ import {
   Users,
   ChevronLeft,
   User as UserIcon,
+  Bell,
 } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -195,7 +197,17 @@ export const AdminLayout = () => {
               <Menu size={24} />
             </button>
             <h1 className="font-serif text-xl font-bold text-white">JEUOB Admin</h1>
-            <div className="w-10" />
+            {profile && <NotificationBell role={profile.role} />}
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden md:flex sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border items-center justify-between px-8 py-3">
+          <div className="flex items-center gap-4">
+            {profile && <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase tracking-widest">{profile.role}</span>}
+          </div>
+          <div className="flex items-center gap-4">
+            {profile && <NotificationBell role={profile.role} />}
           </div>
         </div>
 

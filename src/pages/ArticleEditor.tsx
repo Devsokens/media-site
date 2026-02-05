@@ -22,6 +22,7 @@ import { ArticleFormData } from '@/types/article';
 import { ArrowLeft, Save, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { uploadFile } from '@/lib/storage';
+import { createNotification } from '@/lib/notifications';
 
 import { CATEGORIES } from '@/types/article';
 
@@ -95,19 +96,49 @@ const ArticleEditor = () => {
 
     const onSubmit = async (data: ArticleFormData) => {
         try {
+            let savedArticle;
             if (id) {
-                await updateArticle(id, data);
+                savedArticle = await updateArticle(id, data);
                 toast({
                     title: "Succès",
                     description: "Article mis à jour avec succès",
                 });
             } else {
-                await saveArticle(data);
+                savedArticle = await saveArticle(data);
                 toast({
                     title: "Succès",
                     description: "Article créé avec succès",
                 });
             }
+
+            // If an editor saves a draft, notify admins
+            console.log('Checking notification condition:', {
+                role: profile?.role,
+                isPublished: data.isPublished,
+                hasSavedArticle: !!savedArticle
+            });
+
+            if (profile?.role === 'editor' && !data.isPublished && savedArticle) {
+                console.log('Attempting to create notification for admins...');
+                const notif = await createNotification({
+                    type: 'article_draft',
+                    title: 'Nouvel article à valider',
+                    message: `${profile.fullName} a rédigé un article : "${data.title}"`,
+                    articleId: savedArticle.id,
+                    senderId: profile.id,
+                    recipientRole: 'admin'
+                });
+                console.log('Notification result:', notif);
+
+                if (!notif) {
+                    toast({
+                        variant: "destructive",
+                        title: "Erreur Notification",
+                        description: "L'article est sauvegardé mais l'alerte n'a pas pu être envoyée aux admins.",
+                    });
+                }
+            }
+
             navigate('/admin-jeuob/articles');
         } catch (error) {
             console.error(error);
@@ -275,28 +306,39 @@ const ArticleEditor = () => {
                         </div>
 
                         <div className="flex flex-col gap-2 pt-4 border-t border-border mt-4">
-                            <Button
-                                type="button"
-                                variant={isPublished ? "outline" : "default"}
-                                className="w-full gap-2 text-white"
-                                disabled={isSubmitting || isUploading}
-                                onClick={() => {
-                                    if (!isPublished) {
-                                        setValue('isPublished', true);
-                                        if (!watch('publishedAt')) {
-                                            setValue('publishedAt', new Date().toISOString());
+                            {profile?.role === 'admin' && (
+                                <Button
+                                    type="button"
+                                    variant={isPublished ? "outline" : "default"}
+                                    className="w-full gap-2 text-white"
+                                    disabled={isSubmitting || isUploading}
+                                    onClick={() => {
+                                        if (!isPublished) {
+                                            setValue('isPublished', true);
+                                            if (!watch('publishedAt')) {
+                                                setValue('publishedAt', new Date().toISOString());
+                                            }
                                         }
-                                    }
-                                    handleSubmit(onSubmit)();
-                                }}
-                            >
-                                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : (isPublished ? <ImageIcon size={18} /> : <Upload size={18} />)}
-                                {isPublished ? 'Mettre à jour' : 'Publier l\'article'}
-                            </Button>
+                                        handleSubmit(onSubmit)();
+                                    }}
+                                >
+                                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : (isPublished ? <ImageIcon size={18} /> : <Upload size={18} />)}
+                                    {isPublished ? 'Mettre à jour' : 'Publier l\'article'}
+                                </Button>
+                            )}
+
+                            {profile?.role === 'editor' && isPublished && (
+                                <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg mb-2">
+                                    <p className="text-xs text-primary font-medium text-center">
+                                        Cet article est publié. Seul un administrateur peut modifier son statut.
+                                    </p>
+                                </div>
+                            )}
+
                             <Button
                                 type="button"
-                                variant="ghost"
-                                className="w-full gap-2"
+                                variant={profile?.role === 'admin' ? "ghost" : "default"}
+                                className={`w-full gap-2 ${profile?.role === 'editor' ? 'text-white' : ''}`}
                                 disabled={isSubmitting || isUploading}
                                 onClick={() => {
                                     setValue('isPublished', false);
@@ -304,8 +346,14 @@ const ArticleEditor = () => {
                                 }}
                             >
                                 {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                Enregistrer en brouillon
+                                {profile?.role === 'admin' ? 'Enregistrer en brouillon' : 'Enregistrer pour validation'}
                             </Button>
+
+                            {profile?.role === 'editor' && !isPublished && (
+                                <p className="text-[10px] text-muted-foreground text-center mt-2 italic">
+                                    En tant qu'éditeur, votre article doit être validé par un administrateur avant d'être publié.
+                                </p>
+                            )}
                         </div>
                     </div>
 

@@ -116,7 +116,7 @@ const AdminAds = () => {
 
     return (
         <div className="max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
                     <h1 className="headline-lg text-headline flex items-center gap-2">
                         <Megaphone className="text-primary" /> Campagnes Publicitaires
@@ -124,8 +124,8 @@ const AdminAds = () => {
                     </h1>
                     <p className="text-muted-foreground mt-1">Gérez vos bannières et partenariats</p>
                 </div>
-                <Button onClick={() => openModal()} className="gap-2 h-8 text-xs px-3 md:h-10 md:text-sm md:px-4">
-                    <Plus size={16} className="md:w-[18px] md:h-[18px]" /> Nouvelle Publicité
+                <Button onClick={() => openModal()} className="w-full sm:w-auto gap-2 h-10 text-sm px-4">
+                    <Plus size={16} /> Nouvelle Publicité
                 </Button>
             </div>
 
@@ -156,8 +156,8 @@ const AdminAds = () => {
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="p-1.5 hover:bg-muted rounded-full transition-colors">
-                                        <MoreHorizontal size={16} />
+                                    <button className="p-2 hover:bg-muted rounded-full transition-colors bg-muted/20 md:bg-transparent">
+                                        <MoreHorizontal size={18} />
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -196,7 +196,7 @@ const AdminAds = () => {
             )}
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[95vh] overflow-y-auto p-4 sm:p-6 text-headline">
                     <DialogHeader>
                         <DialogTitle>{editingAd ? 'Modifier la publicité' : 'Nouvelle publicité'}</DialogTitle>
                         <DialogDescription>
@@ -266,11 +266,11 @@ const AdminAds = () => {
                             />
                         </div>
 
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">
                                 Annuler
                             </Button>
-                            <Button type="submit" disabled={isUploading}>
+                            <Button type="submit" disabled={isUploading} className="w-full sm:w-auto order-1 sm:order-2">
                                 {isUploading ? 'Chargement...' : 'Enregistrer'}
                             </Button>
                         </DialogFooter>

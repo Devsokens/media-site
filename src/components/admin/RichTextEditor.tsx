@@ -28,7 +28,7 @@ export const RichTextEditor = ({ value, onChange, folder = 'media' }: RichTextEd
         content: value,
         editorProps: {
             attributes: {
-                class: 'prose prose-sm xl:prose-lg max-w-none focus:outline-none min-h-[500px] p-6 [&_img]:max-w-sm [&_img]:rounded-lg [&_img]:shadow-sm [&_img]:mx-auto',
+                class: 'prose prose-sm xl:prose-lg max-w-none focus:outline-none min-h-[200px] sm:min-h-[500px] p-3 sm:p-6 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:shadow-sm [&_img]:mx-auto break-words overflow-x-hidden',
             },
         },
         onUpdate: ({ editor }) => {
@@ -92,7 +92,7 @@ export const RichTextEditor = ({ value, onChange, folder = 'media' }: RichTextEd
     };
 
     return (
-        <div className="border border-input rounded-md overflow-hidden bg-background max-h-[700px] overflow-y-auto flex flex-col">
+        <div className="border border-input rounded-md overflow-hidden bg-background max-h-[700px] overflow-y-auto overflow-x-hidden flex flex-col">
             <div className="flex flex-wrap items-center gap-1 p-2 bg-muted/30 border-b border-input sticky top-0 z-20 shrink-0">
                 <input
                     type="file"
@@ -206,7 +206,7 @@ export const RichTextEditor = ({ value, onChange, folder = 'media' }: RichTextEd
                 >
                     <Code size={16} />
                 </Button>
-                <div className="ml-auto flex items-center gap-1">
+                <div className="flex items-center gap-1 sm:ml-auto">
                     <Button
                         type="button"
                         variant="ghost"

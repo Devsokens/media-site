@@ -160,9 +160,9 @@ const AdminArticles = () => {
                 </div>
 
                 {/* Advanced Filters Integrated */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="w-[120px] bg-muted border-none h-9 text-xs">
+                        <SelectTrigger className="w-[110px] sm:w-[120px] bg-muted border-none h-9 text-[11px] sm:text-xs">
                             <SelectValue placeholder="Année" />
                         </SelectTrigger>
                         <SelectContent>
@@ -174,7 +174,7 @@ const AdminArticles = () => {
                     </Select>
 
                     <Select value={selectedSemestre} onValueChange={setSelectedSemestre}>
-                        <SelectTrigger className="w-[140px] bg-muted border-none h-9 text-xs">
+                        <SelectTrigger className="w-[120px] sm:w-[140px] bg-muted border-none h-9 text-[11px] sm:text-xs">
                             <SelectValue placeholder="Semestre" />
                         </SelectTrigger>
                         <SelectContent>
@@ -185,7 +185,7 @@ const AdminArticles = () => {
                     </Select>
 
                     <Select value={selectedTrimestre} onValueChange={setSelectedTrimestre}>
-                        <SelectTrigger className="w-[140px] bg-muted border-none h-9 text-xs">
+                        <SelectTrigger className="w-[120px] sm:w-[140px] bg-muted border-none h-9 text-[11px] sm:text-xs">
                             <SelectValue placeholder="Trimestre" />
                         </SelectTrigger>
                         <SelectContent>
@@ -206,7 +206,7 @@ const AdminArticles = () => {
                                 setSearchQuery('');
                                 setFilter('all');
                             }}
-                            className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors underline decoration-dotted ml-2"
+                            className="text-[11px] sm:text-xs font-medium text-muted-foreground hover:text-primary transition-colors underline decoration-dotted ml-1"
                         >
                             Réinitialiser
                         </button>
@@ -302,8 +302,8 @@ const AdminArticles = () => {
                                         <td className="py-4 px-4 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <button className="p-2 hover:bg-muted rounded-full transition-colors">
-                                                        <MoreHorizontal size={18} />
+                                                    <button className="p-2.5 hover:bg-muted rounded-full transition-colors bg-muted/20 md:bg-transparent">
+                                                        <MoreHorizontal size={20} />
                                                     </button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="bg-popover border-border min-w-[160px]">
@@ -382,8 +382,8 @@ const AdminArticles = () => {
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="p-1.5 hover:bg-muted rounded-full transition-colors flex-shrink-0">
-                                                <MoreHorizontal size={16} />
+                                            <button className="p-2 hover:bg-muted rounded-full transition-colors flex-shrink-0 bg-muted/20 md:bg-transparent">
+                                                <MoreHorizontal size={18} />
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="bg-popover border-border min-w-[140px]">
