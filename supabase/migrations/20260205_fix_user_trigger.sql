@@ -1,6 +1,9 @@
 -- Function to handle new user role and info synchronization from Auth to Profiles
 -- This ensures the metadata passed during signUp/signInWithOtp is respected.
 
+-- Ensure the email column exists in profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 DECLARE

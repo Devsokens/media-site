@@ -35,7 +35,6 @@ export const NotificationBell = ({ role }: NotificationBellProps) => {
         fetchNotifications();
 
         // Subscribe to real-time notifications
-        console.log(`Subscribing to notifications for role: ${role}`);
         const channel = supabase
             .channel('public:notifications')
             .on(
@@ -47,13 +46,10 @@ export const NotificationBell = ({ role }: NotificationBellProps) => {
                     filter: `recipient_role=eq.${role}`
                 },
                 (payload) => {
-                    console.log('Real-time notification received:', payload);
                     fetchNotifications();
                 }
             )
-            .subscribe((status) => {
-                console.log(`Notification subscription status for ${role}:`, status);
-            });
+            .subscribe();
 
         return () => {
             supabase.removeChannel(channel);

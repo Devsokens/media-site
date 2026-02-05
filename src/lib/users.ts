@@ -6,6 +6,7 @@ export interface UserProfile {
     email?: string; // Optional if not in profiles yet
     role: 'admin' | 'editor' | 'viewer';
     status: 'active' | 'inactive';
+    avatarUrl?: string;
     createdAt?: string;
 }
 
@@ -15,6 +16,7 @@ const mapProfile = (dbProfile: any): UserProfile => ({
     email: dbProfile.email, // Assume it might be there or joined
     role: dbProfile.role,
     status: dbProfile.status,
+    avatarUrl: dbProfile.avatar_url,
     createdAt: dbProfile.created_at,
 });
 
@@ -37,6 +39,7 @@ export const updateProfile = async (id: string, updates: Partial<UserProfile>): 
     if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
     if (updates.role !== undefined) dbUpdates.role = updates.role;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
 
     const { data, error } = await supabase
         .from('profiles')

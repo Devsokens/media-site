@@ -66,10 +66,8 @@ export const AdminLayout = () => {
     // Determine current role (real profile or hint)
     const effectiveRole = profile?.role || userRoleHint;
 
-    // Only admins can see user management and settings
-    if ((item.path === '/admin-jeuob/users' || item.path === '/admin-jeuob/settings')) {
-      // If we HAVE a role and it's not admin, hide.
-      // If we're still loading and have NO hint, hide (or keep if we want to be optimistic).
+    // Only admins can see user management
+    if (item.path === '/admin-jeuob/users') {
       if (effectiveRole && effectiveRole !== 'admin') return false;
     }
     return true;
@@ -159,8 +157,12 @@ export const AdminLayout = () => {
           ) : profile && isSidebarOpen && (
             <div className="px-6 py-4 border-b border-sidebar-border bg-black/5">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                  <UserIcon size={16} />
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 overflow-hidden border border-white/10">
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon size={16} />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-white truncate">
@@ -208,6 +210,17 @@ export const AdminLayout = () => {
           </div>
           <div className="flex items-center gap-4">
             {profile && <NotificationBell role={profile.role} />}
+            {profile && (
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-divider">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
+                    <UserIcon size={16} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -17,6 +17,7 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policies
 -- Admins can read all notifications
+DROP POLICY IF EXISTS "Admins can read all notifications" ON public.notifications;
 CREATE POLICY "Admins can read all notifications"
 ON public.notifications
 FOR SELECT
@@ -29,8 +30,8 @@ USING (
     )
 );
 
--- Users can read notifications sent to them specifically (if we added recipient_id, but here we use roles)
--- For role-based, we'll allow all authenticated users to read notifications where their role matches
+-- Users can read notifications sent to them specifically
+DROP POLICY IF EXISTS "Users can read notifications for their role" ON public.notifications;
 CREATE POLICY "Users can read notifications for their role"
 ON public.notifications
 FOR SELECT
@@ -44,6 +45,7 @@ USING (
 );
 
 -- Anyone can create a notification (e.g. Editors creating notifications for Admins)
+DROP POLICY IF EXISTS "Anyone can create notifications" ON public.notifications;
 CREATE POLICY "Anyone can create notifications"
 ON public.notifications
 FOR INSERT
@@ -51,6 +53,7 @@ TO authenticated
 WITH CHECK (true);
 
 -- Users can update notifications (mark as read) if they are the recipient
+DROP POLICY IF EXISTS "Recipients can mark notifications as read" ON public.notifications;
 CREATE POLICY "Recipients can mark notifications as read"
 ON public.notifications
 FOR UPDATE
@@ -70,8 +73,19 @@ WITH CHECK (
     )
 );
 
--- Create a function to delete old notifications (optional cleanup)
--- For now, keep it simple.
+-- Grant permissions explicitly
+GRANT ALL ON TABLE public.notifications TO authenticated;
+GRANT ALL ON TABLE public.notifications TO service_role;
 
--- Add to realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+-- Add to realtime (only if not already present)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+        AND schemaname = 'public' 
+        AND tablename = 'notifications'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+    END IF;
+END $$;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { Users, UserPlus, Shield, Mail, MoreHorizontal, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, MoreHorizontal, Edit, Trash2, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,6 +42,7 @@ const AdminUsers = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [role, setRole] = useState<'admin' | 'editor' | 'viewer'>('viewer');
 
     const fetchProfiles = async () => {
@@ -198,11 +199,15 @@ const AdminUsers = () => {
                                 >
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                                {user.fullName.charAt(0)}
+                                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary overflow-hidden border border-divider shrink-0">
+                                                {user.avatarUrl ? (
+                                                    <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Users size={16} />
+                                                )}
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-headline">{user.fullName}</p>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-headline truncate">{user.fullName}</p>
                                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                                                     <Mail size={10} /> {user.email || 'Pas d\'email'}
                                                 </p>
@@ -353,15 +358,25 @@ const AdminUsers = () => {
                         {!editingUser && (
                             <div className="space-y-2">
                                 <Label htmlFor="password">Mot de passe initial</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        minLength={6}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                                 <p className="text-[10px] text-muted-foreground">
                                     L'utilisateur pourra modifier ce mot de passe plus tard.
                                 </p>

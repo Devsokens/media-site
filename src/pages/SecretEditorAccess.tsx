@@ -9,9 +9,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Shield,
+  Bell,
 } from 'lucide-react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
 import { getArticles } from '@/lib/articles';
+import { getProfiles, UserProfile } from '@/lib/users';
+import { getNotifications, Notification } from '@/lib/notifications';
+import { useOutletContext } from 'react-router-dom';
 import { Article } from '@/types/article';
 import {
   AreaChart,
@@ -27,41 +30,80 @@ import {
   Legend,
 } from 'recharts';
 
-// Mock data for charts
-const viewData = [
-  { name: 'Lun', views: 400 },
-  { name: 'Mar', views: 300 },
-  { name: 'Mer', views: 600 },
-  { name: 'Jeu', views: 800 },
-  { name: 'Ven', views: 500 },
-  { name: 'Sam', views: 900 },
-  { name: 'Dim', views: 1100 },
-];
-
-const categoryData = [
-  { name: 'Actualité', value: 400 },
-  { name: 'Politique', value: 300 },
-  { name: 'Économie', value: 200 },
-  { name: 'Culture', value: 150 },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'];
 
 const SecretEditorAccess = () => {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [usersCount, setUsersCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useOutletContext<{ profile: UserProfile | null }>();
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      const data = await getArticles();
-      setArticles(data);
+    const fetchData = async () => {
+      const [articlesData, profilesData] = await Promise.all([
+        getArticles(),
+        getProfiles()
+      ]);
+
+      setArticles(articlesData);
+      setUsersCount(profilesData.length);
+
+      if (profile) {
+        const notifs = await getNotifications(profile.role);
+        setNotifications(notifs);
+      }
+
       setLoading(false);
     };
-    fetchArticles();
-  }, []);
+    fetchData();
+  }, [profile]);
 
   const totalViews = articles.reduce((acc, a) => acc + (a.views || 0), 0);
   const publishedArticles = articles.filter(a => a.isPublished).length;
+
+  // Articles this month
+  const thisMonth = new Date().getMonth();
+  const thisYear = new Date().getFullYear();
+  const articlesThisMonth = articles.filter(a => {
+    if (!a.createdAt) return false;
+    const d = new Date(a.createdAt);
+    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+  }).length;
+
+  // Real data for category chart
+  const categoryCounts = articles.reduce((acc: Record<string, number>, article) => {
+    const cat = article.category || 'Sans catégorie';
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+
+  const categoryData = Object.entries(categoryCounts).map(([name, value]) => ({
+    name,
+    value
+  })).sort((a, b) => b.value - a.value).slice(0, 8);
+
+  // Real data for views/articles evolution (last 7 days based on creation)
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return {
+      name: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
+      dateStr: d.toISOString().split('T')[0],
+      views: 0,
+      articles: 0
+    };
+  });
+
+  // Populate with actual data
+  articles.forEach(article => {
+    const date = article.createdAt?.split('T')[0];
+    const day = last7Days.find(d => d.dateStr === date);
+    if (day) {
+      day.views += (article.views || 0);
+      day.articles += 1;
+    }
+  });
 
   if (loading) {
     return (
@@ -72,21 +114,21 @@ const SecretEditorAccess = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
+    <div className="max-w-7xl mx-auto space-y-8">
+      <div>
         <h1 className="headline-lg text-headline">Tableau de bord</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Bienvenue sur votre espace d'administration "JEUOB". Voici un aperçu de vos performances.
+          Bienvenue sur votre espace d'administration "JEUOB". Voici un aperçu de vos performances réelles.
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Vues totales', value: totalViews.toLocaleString(), icon: Eye, color: 'text-blue-500', trend: '+12.5%', isUp: true },
-          { label: 'Articles publiés', value: publishedArticles, icon: FileText, color: 'text-green-500', trend: '+2', isUp: true },
-          { label: 'Total Articles', value: articles.length, icon: Users, color: 'text-orange-500', trend: '+5%', isUp: true },
-          { label: 'Temps moyen', value: '4m 32s', icon: Clock, color: 'text-purple-500', trend: '+15s', isUp: true },
+          { label: 'Vues totales', value: totalViews.toLocaleString(), icon: Eye, color: 'text-blue-500', trend: 'Total cumulé', isUp: true },
+          { label: 'Articles publiés', value: publishedArticles, icon: FileText, color: 'text-green-500', trend: `${articles.length} total`, isUp: true },
+          { label: 'Membres Équipe', value: usersCount, icon: Users, color: 'text-orange-500', trend: 'Actifs', isUp: true },
+          { label: 'Articles ce mois-ci', value: articlesThisMonth, icon: Clock, color: 'text-purple-500', trend: 'Activité récente', isUp: true },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -111,21 +153,17 @@ const SecretEditorAccess = () => {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 admin-card h-[400px] flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-bold text-headline flex items-center gap-2">
               <TrendingUp size={18} className="text-primary" />
-              Évolution des vues
+              Évolution des vues (7 derniers jours)
             </h3>
-            <select className="bg-muted border-none rounded-md text-xs px-2 py-1 outline-none">
-              <option>7 derniers jours</option>
-              <option>30 derniers jours</option>
-            </select>
           </div>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={viewData}>
+              <AreaChart data={last7Days}>
                 <defs>
                   <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
@@ -159,6 +197,7 @@ const SecretEditorAccess = () => {
                   fillOpacity={1}
                   fill="url(#colorViews)"
                   strokeWidth={3}
+                  name="Vues"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -191,7 +230,7 @@ const SecretEditorAccess = () => {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Content & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 admin-card">
           <h3 className="font-bold text-headline mb-6">Articles récents</h3>
@@ -199,13 +238,15 @@ const SecretEditorAccess = () => {
             {articles.slice(0, 5).map((article) => (
               <div key={article.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
                 <div className="flex items-center gap-4">
-                  {article.coverImage && <img src={article.coverImage} className="w-12 h-12 rounded-lg object-cover" alt="" />}
-                  <div>
-                    <h4 className="font-bold text-headline text-sm line-clamp-1">{article.title}</h4>
+                  <div className="w-12 h-12 rounded-lg bg-muted flex-shrink-0 overflow-hidden">
+                    {article.coverImage && <img src={article.coverImage} className="w-full h-full object-cover" alt="" />}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-headline text-sm truncate">{article.title}</h4>
                     <p className="text-xs text-muted-foreground">{article.category} • {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Brouillon'}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="text-sm font-bold text-headline">{article.views || 0}</span>
                   <Eye size={14} className="text-muted-foreground" />
                 </div>
@@ -218,25 +259,28 @@ const SecretEditorAccess = () => {
         </div>
 
         <div className="admin-card">
-          <h3 className="font-bold text-headline mb-6">Notifications</h3>
+          <h3 className="font-bold text-headline mb-6">Activités Récentes</h3>
           <div className="space-y-6">
-            {[
-              { label: 'Système configuré', desc: 'Supabase est maintenant connecté', time: '10m', icon: Shield, color: 'bg-green-100 text-green-600' },
-              { label: 'Bienvenue', desc: 'Votre nouveau tableau de bord est prêt', time: '1h', icon: FileText, color: 'bg-blue-100 text-blue-600' },
-            ].map((notif, i) => (
-              <div key={i} className="flex gap-4">
-                <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${notif.color}`}>
-                  <notif.icon size={18} />
+            {notifications.length > 0 ? notifications.slice(0, 5).map((notif) => (
+              <div key={notif.id} className="flex gap-4">
+                <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-primary/10 text-primary`}>
+                  <Bell size={18} />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex justify-between items-center w-full">
-                    <h5 className="text-sm font-bold text-headline">{notif.label}</h5>
-                    <span className="text-[10px] text-muted-foreground">{notif.time}</span>
+                    <h5 className="text-sm font-bold text-headline truncate">{notif.title}</h5>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">
+                      {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">{notif.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notif.message}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground italic">Aucune activité récente.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

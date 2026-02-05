@@ -278,17 +278,24 @@ const ArticleEditor = () => {
 
                         <div className="space-y-2">
                             <Label>Catégorie</Label>
-                            <Select onValueChange={(val) => setValue('category', val)} defaultValue={watch('category')}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Choisir une catégorie" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {CATEGORIES.map((cat) => (
-                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <input type="hidden" {...register('category', { required: true })} />
+                            <Controller
+                                name="category"
+                                control={control}
+                                rules={{ required: 'La catégorie est requise' }}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Choisir une catégorie" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {CATEGORIES.map((cat) => (
+                                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.category && <p className="text-destructive text-sm">{errors.category.message}</p>}
                         </div>
 
                         <div className="space-y-2">

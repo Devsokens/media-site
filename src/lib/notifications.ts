@@ -57,7 +57,12 @@ export const createNotification = async (notification: Omit<Notification, 'id' |
         .single();
 
     if (error) {
-        console.error('Error creating notification:', error);
+        console.error('Error creating notification (Detailed):', JSON.stringify({
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+        }, null, 2));
         return null;
     }
 
